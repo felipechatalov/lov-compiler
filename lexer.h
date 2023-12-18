@@ -8,6 +8,8 @@ typedef enum {
     TOKEN_KEYWORD,
     TOKEN_OPERATOR,
     TOKEN_SEPARATOR,
+    TOKEN_NUMBER,
+    TOKEN_STRING,
 } TokenKind;
 
 typedef struct {
@@ -67,7 +69,7 @@ const char *separators[] = {
     ",",   // comma
     ".",   // dot
     ":",   // colon
-    "\"",  // double quote
+//    "\"",  // double quote
     "'",   // single quote
     "#",   // hash
     "(",   // open parenthesis

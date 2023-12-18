@@ -1,6 +1,7 @@
 #include "lexer.h"
 #include <stdlib.h>
 
+// https://en.wikipedia.org/wiki/Lexical_analysis
 
 Lexer lexer_new(const char *content, int lenght){
     Lexer lexer = {0};
@@ -21,6 +22,21 @@ Token lexer_next(Lexer *lexer){
     if (lexer->cursor >= lexer->lenght){
         token.kind = TOKEN_END;
         token.lenght = 0;
+        return token;
+    }
+
+    // TODO if string
+    if (lexer->content[lexer->cursor] == '\"'){
+        lexer->cursor++;
+        token.lenght++;
+        token.kind = TOKEN_STRING;
+        // while it is not a double quote
+        while (lexer->cursor < lexer->lenght && lexer->content[lexer->cursor] != '\"' ){
+            lexer->cursor++;
+            token.lenght++;
+        }
+        lexer->cursor++;
+        token.lenght++;
         return token;
     }
 
@@ -63,8 +79,16 @@ Token lexer_next(Lexer *lexer){
     }
 
     // TODO if number
-    
-    // TODO if string
+    if (isdigit(lexer->content[lexer->cursor])){
+        token.kind = TOKEN_NUMBER;
+        // while it is a number
+        while (lexer->cursor < lexer->lenght && (isdigit(lexer->content[lexer->cursor]) || lexer->content[lexer->cursor] == '.')){
+            lexer->cursor++;
+            token.lenght++;
+        }
+        return token;
+    }
+
 
 
 
@@ -90,6 +114,10 @@ char* token_to_text(TokenKind kind){
             return "TOKEN_OPERATOR";
         case TOKEN_SEPARATOR:
             return "TOKEN_SEPARATOR";
+        case TOKEN_NUMBER:
+            return "TOKEN_NUMBER";
+        case TOKEN_STRING:
+            return "TOKEN_STRING";
         default:
             return "TOKEN_UNKNOWN";
     }
@@ -130,6 +158,10 @@ int is_symbol_start(char c){
 int is_symbol(char c){
     return iswalnum(c) || c == '_';
 }  
+
+int is_digit(char c){
+    return isdigit(c);
+}
 
 void lexer_trim_left(Lexer *lexer){
     while (lexer->cursor < lexer->lenght && isspace(lexer->content[lexer->cursor])){
