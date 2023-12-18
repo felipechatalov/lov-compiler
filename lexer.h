@@ -4,8 +4,7 @@
 typedef enum {
     TOKEN_END = 0,
     TOKEN_INVALID,
-    TOKEN_HASH,
-    TOKEN_SYMBOL,
+    TOKEN_IDENTIFIER,
     TOKEN_KEYWORD,
     TOKEN_OPERATOR,
     TOKEN_SEPARATOR,
@@ -40,7 +39,7 @@ const char *keywords[] = {
     "float",
     "char",
 };
-const KEYWORDS_COUNT = sizeof(keywords) / sizeof(keywords[0]);
+const int KEYWORDS_COUNT = sizeof(keywords) / sizeof(keywords[0]);
 
 const char *operators[] = {
     "+",   // plus
@@ -62,16 +61,14 @@ const char *operators[] = {
     "++",  // plus plus
     "--",  // minus minus
 };
-const OPERATORS_COUNT = sizeof(operators) / sizeof(operators[0]);
+const int OPERATORS_COUNT = sizeof(operators) / sizeof(operators[0]);
 
 const char *separators[] = {
-    " ",   // space
-    "\n",  // new line
     ",",   // comma
     ".",   // dot
     ":",   // colon
     "\"",  // double quote
-    '"',   // single quote
+    "'",   // single quote
     "#",   // hash
     "(",   // open parenthesis
     ")",   // close parenthesis
@@ -81,7 +78,7 @@ const char *separators[] = {
     "]",   // close square bracket
     ";",   // semicolon
 };
-const SEPARATORS_COUNT = sizeof(separators) / sizeof(separators[0]);
+const int SEPARATORS_COUNT = sizeof(separators) / sizeof(separators[0]);
 
 
 

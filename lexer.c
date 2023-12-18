@@ -17,23 +17,49 @@ Token lexer_next(Lexer *lexer){
         .text = &lexer->content[lexer->cursor]
     };
 
+    // end of file
     if (lexer->cursor >= lexer->lenght){
+        token.kind = TOKEN_END;
+        token.lenght = 0;
         return token;
     }
 
-    //printf("lexer->content[lexer->cursor] = %c\n", lexer->content[lexer->cursor]);
-    //int temp = lexer->content[lexer->cursor];
-    //printf("temp = %d\n", temp);
-    if (lexer->content[lexer->cursor] == '#'){
+  
+
+    // if separator
+    if (is_separator(lexer->content[lexer->cursor])){
         lexer->cursor++;
-        token.kind = TOKEN_HASH;
+        token.kind = TOKEN_SEPARATOR;
         token.lenght = 1;
         return token;
     }
 
+
+
+    // keyword or identifier
+    // if starts with a letter
     if (is_symbol_start(lexer->content[lexer->cursor])){
-        token.kind = TOKEN_SYMBOL;
+        // while it is a letter or a number
         while (lexer->cursor < lexer->lenght && is_symbol(lexer->content[lexer->cursor])){
+            lexer->cursor++;
+            token.lenght++;
+        }
+        // check if it is a keyword
+        for (int i = 0; i < KEYWORDS_COUNT; i++){
+            if (strncmp(token.text, keywords[i], token.lenght) == 0){
+                token.kind = TOKEN_KEYWORD;
+                return token;
+            }
+        }
+        token.kind = TOKEN_IDENTIFIER;
+        return token;
+    }
+
+    // if operator
+    if (is_operator(lexer->content[lexer->cursor])){
+        token.kind = TOKEN_OPERATOR;
+        // while it is a operator
+        while (lexer->cursor < lexer->lenght && is_operator(lexer->content[lexer->cursor])){
             lexer->cursor++;
             token.lenght++;
         }
@@ -54,10 +80,8 @@ char* token_to_text(TokenKind kind){
             return "TOKEN_END";
         case TOKEN_INVALID:
             return "TOKEN_INVALID";
-        case TOKEN_HASH:
-            return "TOKEN_HASH";
-        case TOKEN_SYMBOL:
-            return "TOKEN_SYMBOL";
+        case TOKEN_IDENTIFIER:
+            return "TOKEN_IDENTIFIER";
         case TOKEN_KEYWORD:
             return "TOKEN_KEYWORD";
         case TOKEN_OPERATOR:
@@ -71,42 +95,30 @@ char* token_to_text(TokenKind kind){
 };
 
 int is_operator(char c){
-    return  c ==    "+"  ||   // plus
-            c ==    "-"  ||   // minus
-            c ==    "*"  ||   // star
-            c ==    "/"  ||   // slash
-            c ==    "="  ||   // equal (assignment)
-            c ==    "==" ||   // double equal (comparison)
-            c ==    "!=" ||   // not equal (comparison)
-            c ==    ">"  ||   // greater than
-            c ==    "<"  ||   // less than 
-            c ==    ">=" ||   // greater than or equal
-            c ==    "<=" ||   // less than or equal
-            c ==    "!"  ||   // exclamation mark (not)
-            c ==    "+=" ||   // plus equal
-            c ==    "-=" ||   // minus equal
-            c ==    "*=" ||   // star equal
-            c ==    "/=" ||   // slash equal
-            c ==    "++" ||   // plus plus
-            c ==    "--";     // minus minus
+    return  c ==    '+'  ||   // plus
+            c ==    '-'  ||   // minus
+            c ==    '*'  ||   // star
+            c ==    '/'  ||   // slash
+            c ==    '='  ||   // equal (assignment)
+            c ==    '>'  ||   // greater than
+            c ==    '<'  ||   // less than 
+            c ==    '!';      // exclamation mark (not)
 }
 
 int is_separator(char c){
-    return  c ==    " "  ||   // space
-            c ==    "\n" ||   // new line
-            c ==    ","  ||   // comma
-            c ==    "."  ||   // dot
-            c ==    ":"  ||   // colon
-            c ==    '"'  ||   // double quote
-            c ==    "'"  ||   // single quote
-            c ==    "#"  ||   // hash
-            c ==    "("  ||   // open parenthesis
-            c ==    ")"  ||   // close parenthesis
-            c ==    "{"  ||   // open curly brace
-            c ==    "}"  ||   // close curly brace
-            c ==    "["  ||   // open square bracket
-            c ==    "]"  ||   // close square bracket
-            c ==    ";";   // semicolon
+    return  c ==    ','  ||   // comma
+            c ==    '.'  ||   // dot
+            c ==    ':'  ||   // colon
+            c ==    '\"' ||   // double quote
+            c ==    '\'' ||   // single quote
+            c ==    '#'  ||   // hash
+            c ==    '('  ||   // open parenthesis
+            c ==    ')'  ||   // close parenthesis
+            c ==    '{'  ||   // open curly brace
+            c ==    '}'  ||   // close curly brace
+            c ==    '['  ||   // open square bracket
+            c ==    ']'  ||   // close square bracket
+            c ==    ';';      // semicolon
 }
 
 int is_symbol_start(char c){

@@ -6,7 +6,7 @@
 
 
 void main(){
-    const char *content = "#define#include foo";
+    const char *content = "#define#import idt;  . ++";
     Lexer lexer = lexer_new(content, strlen(content));
     Token token;
     token = lexer_next(&lexer);
