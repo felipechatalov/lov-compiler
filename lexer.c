@@ -1,18 +1,6 @@
 #include "lexer.h"
 #include <stdlib.h>
 
-const char *keywords[] = {
-    "if",
-    "else",
-    "import",
-    "def",
-    "return",
-    "for",
-    "while",
-    "int",
-    "float",
-    "char",
-};
 
 Lexer lexer_new(const char *content, int lenght){
     Lexer lexer = {0};
