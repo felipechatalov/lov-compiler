@@ -58,10 +58,55 @@ char* token_to_text(TokenKind kind){
             return "TOKEN_HASH";
         case TOKEN_SYMBOL:
             return "TOKEN_SYMBOL";
+        case TOKEN_KEYWORD:
+            return "TOKEN_KEYWORD";
+        case TOKEN_OPERATOR:
+            return "TOKEN_OPERATOR";
+        case TOKEN_SEPARATOR:
+            return "TOKEN_SEPARATOR";
         default:
             return "TOKEN_UNKNOWN";
     }
     return NULL;
+};
+
+int is_operator(char c){
+    return  c ==    "+"  ||   // plus
+            c ==    "-"  ||   // minus
+            c ==    "*"  ||   // star
+            c ==    "/"  ||   // slash
+            c ==    "="  ||   // equal (assignment)
+            c ==    "==" ||   // double equal (comparison)
+            c ==    "!=" ||   // not equal (comparison)
+            c ==    ">"  ||   // greater than
+            c ==    "<"  ||   // less than 
+            c ==    ">=" ||   // greater than or equal
+            c ==    "<=" ||   // less than or equal
+            c ==    "!"  ||   // exclamation mark (not)
+            c ==    "+=" ||   // plus equal
+            c ==    "-=" ||   // minus equal
+            c ==    "*=" ||   // star equal
+            c ==    "/=" ||   // slash equal
+            c ==    "++" ||   // plus plus
+            c ==    "--";     // minus minus
+}
+
+int is_separator(char c){
+    return  c ==    " "  ||   // space
+            c ==    "\n" ||   // new line
+            c ==    ","  ||   // comma
+            c ==    "."  ||   // dot
+            c ==    ":"  ||   // colon
+            c ==    '"'  ||   // double quote
+            c ==    "'"  ||   // single quote
+            c ==    "#"  ||   // hash
+            c ==    "("  ||   // open parenthesis
+            c ==    ")"  ||   // close parenthesis
+            c ==    "{"  ||   // open curly brace
+            c ==    "}"  ||   // close curly brace
+            c ==    "["  ||   // open square bracket
+            c ==    "]"  ||   // close square bracket
+            c ==    ";";   // semicolon
 }
 
 int is_symbol_start(char c){

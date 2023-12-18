@@ -71,7 +71,7 @@ const char *separators[] = {
     ".",   // dot
     ":",   // colon
     "\"",  // double quote
-    "'",   // single quote
+    '"',   // single quote
     "#",   // hash
     "(",   // open parenthesis
     ")",   // close parenthesis
@@ -94,4 +94,6 @@ int is_symbol_start(char c);
 int is_symbol(char c);
 void lexer_trim_left(Lexer *lexer);
 char* token_to_text(TokenKind kind);
+int is_operator(char c);
+int is_separator(char c);
 #endif // LEXER_H
