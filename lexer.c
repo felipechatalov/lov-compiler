@@ -17,14 +17,12 @@ Token lexer_next(Lexer *lexer){
         .text = &lexer->content[lexer->cursor]
     };
 
-    // end of file
+    // if end of file
     if (lexer->cursor >= lexer->lenght){
         token.kind = TOKEN_END;
         token.lenght = 0;
         return token;
     }
-
-  
 
     // if separator
     if (is_separator(lexer->content[lexer->cursor])){
@@ -33,8 +31,6 @@ Token lexer_next(Lexer *lexer){
         token.lenght = 1;
         return token;
     }
-
-
 
     // keyword or identifier
     // if starts with a letter
@@ -65,6 +61,12 @@ Token lexer_next(Lexer *lexer){
         }
         return token;
     }
+
+    // TODO if number
+    
+    // TODO if string
+
+
 
     lexer->cursor++;
     token.kind = TOKEN_INVALID;

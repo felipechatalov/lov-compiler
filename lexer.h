@@ -82,9 +82,6 @@ const int SEPARATORS_COUNT = sizeof(separators) / sizeof(separators[0]);
 
 
 
-
-
-
 Lexer lexer_new(const char *content, int lenght);
 Token lexer_next(Lexer *lexer);
 int is_symbol_start(char c);
