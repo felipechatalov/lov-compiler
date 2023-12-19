@@ -25,7 +25,7 @@ Token lexer_next(Lexer *lexer){
         return token;
     }
 
-    // TODO if string
+    // if string
     if (lexer->content[lexer->cursor] == '\"'){
         lexer->cursor++;
         token.lenght++;
@@ -60,7 +60,7 @@ Token lexer_next(Lexer *lexer){
         }
         // check if it is a keyword
         for (int i = 0; i < KEYWORDS_COUNT; i++){
-            if (strncmp(token.text, valid_symbols[i], token.lenght) == 0){
+            if (strncmp(token.text, TokenLookUpTable[i].text, token.lenght) == 0){
                 token.class = TOKEN_KEYWORD;
                 return token;
             }
@@ -243,49 +243,25 @@ TokenKind evaluate_token(Token token){
     //printf("received: %.*s\n", token.lenght, token.text);
     //printf("class: %s\n", token_class_to_text(token.class));
     int i;
-    switch(token.class){
-        case TOKEN_KEYWORD:
-            for (int i = 0; i < KEYWORDS_COUNT; i++){
-                if (strncmp(token.text, valid_symbols[i], token.lenght) == 0){
-                    return token_kinds[i];
-                }
+
+    if (token.class == TOKEN_KEYWORD || token.class == TOKEN_OPERATOR || token.class == TOKEN_SEPARATOR){
+        for (i = 0; i < TOKEN_LOOK_UP_TABLE_SIZE; i++){
+            if (strncmp(token.text, TokenLookUpTable[i].text, token.lenght) == 0){
+                return TokenLookUpTable[i].kind;
             }
-        case TOKEN_OPERATOR:
-            for (int i = 0; i < OPERATORS_COUNT; i++){
-                if (strncmp(token.text, valid_symbols[i + KEYWORDS_COUNT], token.lenght) == 0){
-                    return token_kinds[i + KEYWORDS_COUNT];
-                }
-            }
-
-        case TOKEN_SEPARATOR:
-            for (int i = 0; i < SEPARATORS_COUNT; i++){
-                if (strncmp(token.text, valid_symbols[i + KEYWORDS_COUNT + OPERATORS_COUNT], token.lenght) == 0){
-                    return token_kinds[i + KEYWORDS_COUNT + OPERATORS_COUNT];
-                }
-            }
-
-        case TOKEN_IDENTIFIER:
-            if (is_valid_identifier(token.text, token.lenght)){
-                return TOKEN_ID;
-            }
-            return TOKEN_UNKNOWN;
-
-        case TOKEN_NUMBER:
-            // TODO check if is int or float
-            if (is_valid_int(token.text, token.lenght))
-                return TOKEN_TYPE_INT;
-            if (is_valid_float(token.text, token.lenght))
-                return TOKEN_TYPE_FLOAT;
-            return TOKEN_UNKNOWN;
-
-        case TOKEN_STRING:
-            return TOKEN_TYPE_STRING;
-
-        case TOKEN_INVALID:
-            return TOKEN_UNKNOWN;
-
-        default:
-            return TOKEN_UNKNOWN;
+        }
     }
+    else if (token.class == TOKEN_IDENTIFIER){
+        if (is_valid_identifier(token.text, token.lenght)) return TOKEN_ID;
+        return TOKEN_UNKNOWN;
+    }
+    else if (token.class == TOKEN_NUMBER){
+        if (is_valid_int(token.text, token.lenght)) return TOKEN_VALUE_INT;
+        if (is_valid_float(token.text, token.lenght)) return TOKEN_VALUE_FLOAT;
+        return TOKEN_UNKNOWN;
+        }
+    else if (token.class == TOKEN_STRING) return TOKEN_VALUE_STRING;
+    else if (token.class == TOKEN_INVALID) return TOKEN_UNKNOWN;
+    else return TOKEN_UNKNOWN;
 
 }

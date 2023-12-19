@@ -23,7 +23,7 @@ typedef enum {
     
     TOKEN_TYPE_INT,
     TOKEN_TYPE_FLOAT,
-    TOKEN_TYPE_STRING,
+    TOKEN_TYPE_STR,
     
     TOKEN_OP_PLUS,
     TOKEN_OP_MINUS,
@@ -59,7 +59,9 @@ typedef enum {
     TOKEN_SEP_SEMICOLON,
 
     TOKEN_ID,
-
+    TOKEN_VALUE_INT,
+    TOKEN_VALUE_FLOAT,
+    TOKEN_VALUE_STRING,
     TOKEN_UNKNOWN,
 } TokenKind;
 
@@ -81,51 +83,60 @@ typedef struct {
     int lineStart;
 } Lexer;
 
-const char* valid_symbols[] = {
-    "if",
-    "else",
-    "import",
-    "def",
-    "return",
-    "for",
-    "while",
-    "int",
-    "float",
-    "str",
+typedef struct {
+    const char *text;
+    TokenKind kind;
+} TableToken;
 
-    "+",   // plus
-    "-",   // minus
-    "*",   // star
-    "/",   // slash
-    "=",   // equal (assignment)
-    "==",  // double equal (comparison)
-    "!=",  // not equal (comparison)
-    ">",   // greater than
-    "<",   // less than 
-    ">=",  // greater than or equal
-    "<=",  // less than or equal
-    "!",   // exclamation mark (not)
-    "+=",  // plus equal
-    "-=",  // minus equal
-    "*=",  // star equal
-    "/=",  // slash equal
-    "++",  // plus plus
-    "--",  // minus minus
+TableToken TokenLookUpTable[] = {
+    // Keywords
+    {.text = "if",      .kind = TOKEN_KW_IF},
+    {.text = "else",    .kind = TOKEN_KW_ELSE},
+    {.text = "import",  .kind = TOKEN_KW_IMPORT},
+    {.text = "def",     .kind = TOKEN_KW_DEF},
+    {.text = "return",  .kind = TOKEN_KW_RETURN},   // return
+    {.text = "for",     .kind = TOKEN_KW_FOR},
+    {.text = "while",   .kind = TOKEN_KW_WHILE},
+    {.text = "int",     .kind = TOKEN_TYPE_INT},
+    {.text = "float",   .kind = TOKEN_TYPE_FLOAT},
+    {.text = "str",     .kind = TOKEN_TYPE_STR},
 
-    ",",   // comma
-    ".",   // dot
-    ":",   // colon
-    "\"",  // double quote
-    "'",   // single quote
-    "#",   // hash
-    "(",   // open parenthesis
-    ")",   // close parenthesis
-    "{",   // open curly brace
-    "}",   // close curly brace
-    "[",   // open square bracket
-    "]",   // close square bracket
-    ";",   // semicolon
+    // Operators
+    {.text = "+",       .kind = TOKEN_OP_PLUS},   // plus
+    {.text = "-",       .kind = TOKEN_OP_MINUS},   // minus
+    {.text = "*",       .kind = TOKEN_OP_STAR},   // star
+    {.text = "/",       .kind = TOKEN_OP_SLASH},   // slash
+    {.text = "=",       .kind = TOKEN_OP_EQUAL},   // equal (assignment)
+    {.text = "==",      .kind = TOKEN_OP_DOUBLE_EQUAL},   // double equal (comparison)
+    {.text = "!=",      .kind = TOKEN_OP_NOT_EQUAL},   // not equal (comparison)
+    {.text = ">",       .kind = TOKEN_OP_GREATER_THAN},   // greater than
+    {.text = "<",       .kind = TOKEN_OP_LESS_THAN},   // less than 
+    {.text = ">=",      .kind = TOKEN_OP_GREATER_THAN_OR_EQUAL},   // greater than or equal
+    {.text = "<=",      .kind = TOKEN_OP_LESS_THAN_OR_EQUAL},   // less than or equal
+    {.text = "!",       .kind = TOKEN_OP_NOT},   // exclamation mark (not)
+    {.text = "+=",      .kind = TOKEN_OP_PLUS_EQUAL},   // plus equal
+    {.text = "-=",      .kind = TOKEN_OP_MINUS_EQUAL},   // minus equal
+    {.text = "*=",      .kind = TOKEN_OP_STAR_EQUAL},   // star equal
+    {.text = "/=",      .kind = TOKEN_OP_SLASH_EQUAL},   // slash equal
+    {.text = "++",      .kind = TOKEN_OP_PLUS_PLUS},   // plus plus
+    {.text = "--",      .kind = TOKEN_OP_MINUS_MINUS},   // minus minus
+
+    // Separators
+    {.text = ",",       .kind = TOKEN_SEP_COMMA},   // comma
+    {.text = ".",       .kind = TOKEN_SEP_DOT},   // dot
+    {.text = ":",       .kind = TOKEN_SEP_COLON},   // colon
+    {.text = "\"",      .kind = TOKEN_SEP_DOUBLE_QUOTE},   // double quote
+    {.text = "'",       .kind = TOKEN_SEP_SINGLE_QUOTE},   // single quote
+    {.text = "#",       .kind = TOKEN_SEP_HASH},   // hash
+    {.text = "(",       .kind = TOKEN_SEP_OPEN_PARENTHESIS},   // open parenthesis
+    {.text = ")",       .kind = TOKEN_SEP_CLOSE_PARENTHESIS},   // close parenthesis
+    {.text = "{",       .kind = TOKEN_SEP_OPEN_CURLY_BRACE},   // open curly brace
+    {.text = "}",       .kind = TOKEN_SEP_CLOSE_CURLY_BRACE},   // close curly brace
+    {.text = "[",       .kind = TOKEN_SEP_OPEN_SQUARE_BRACKET},   // open square bracket
+    {.text = "]",       .kind = TOKEN_SEP_CLOSE_SQUARE_BRACKET},   // close square bracket
+    {.text = ";",       .kind = TOKEN_SEP_SEMICOLON},   // semicolon
 };
+int TOKEN_LOOK_UP_TABLE_SIZE = sizeof(TokenLookUpTable) / sizeof(TokenLookUpTable[0]);
 
 const int KEYWORDS_COUNT = 10;
 const int OPERATORS_COUNT = 18;
@@ -143,7 +154,7 @@ const TokenKind token_kinds[] = {
     
     TOKEN_TYPE_INT,
     TOKEN_TYPE_FLOAT,
-    TOKEN_TYPE_STRING,
+    TOKEN_TYPE_STR,
     
     TOKEN_OP_PLUS,
     TOKEN_OP_MINUS,
@@ -179,6 +190,9 @@ const TokenKind token_kinds[] = {
     TOKEN_SEP_SEMICOLON,
 
     TOKEN_ID,
+    TOKEN_VALUE_INT,
+    TOKEN_VALUE_FLOAT,
+    TOKEN_VALUE_STRING,
     TOKEN_UNKNOWN,
 };
 
@@ -229,6 +243,9 @@ char* token_kind_list[] = {
     "TOKEN_SEP_SEMICOLON",
 
     "TOKEN_ID",
+    "TOKEN_VALUE_INT",
+    "TOKEN_VALUE_FLOAT",
+    "TOKEN_VALUE_STRING",
     "TOKEN_UNKNOWN",
 };
 
@@ -243,6 +260,6 @@ int is_digit(char c);
 int is_invalid(char c);
 char* token_class_to_text(TokenClass class);
 char* token_kind_to_text(TokenKind kind);
-TokenKind evaluate_token_kind(Token token);
+TokenKind evaluate_token(Token token);
 
 #endif // LEXER_H
