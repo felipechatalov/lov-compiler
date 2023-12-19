@@ -2,7 +2,7 @@
 #define LEXER_H
 
 typedef enum {
-    TOKEN_END = 0,
+    TOKEN_EOF = 0,
     TOKEN_INVALID,
     TOKEN_IDENTIFIER,
     TOKEN_KEYWORD,
@@ -10,9 +10,29 @@ typedef enum {
     TOKEN_SEPARATOR,
     TOKEN_NUMBER,
     TOKEN_STRING,
+} TokenClass;
+
+typedef enum {
+    TOKEN_KW_IF,
+    TOKEN_KW_ELSE,
+    TOKEN_KW_IMPORT,
+    TOKEN_KW_DEF,
+    // ...
+    TOKEN_NUMBER_INT,
+    TOKEN_NUMBER_FLOAT,
+    TOKEN_VALUE_STRING,
+    // ...
+    TOKEN_VAR_IDENTIFIER,
+    // ...
+    TOKEN_OPERATOR_PLUS,
+    TOKEN_OPERATOR_MINUS,
+    TOKEN_SEPARATOR_COMMA,
+    // ...
+    TOKEN_UNKNOWN,
 } TokenKind;
 
 typedef struct {
+    TokenClass class;
     TokenKind kind;
     const char *text;
     int lenght;
@@ -89,7 +109,12 @@ Token lexer_next(Lexer *lexer);
 int is_symbol_start(char c);
 int is_symbol(char c);
 void lexer_trim_left(Lexer *lexer);
-char* token_to_text(TokenKind kind);
 int is_operator(char c);
 int is_separator(char c);
+int is_digit(char c);
+int is_invalid(char c);
+char* token_class_to_text(TokenClass class);
+char* token_kind_to_text(TokenKind kind);
+TokenKind evaluate_token_kind(Token token);
+
 #endif // LEXER_H

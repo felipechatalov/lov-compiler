@@ -20,7 +20,7 @@ Token lexer_next(Lexer *lexer){
 
     // if end of file
     if (lexer->cursor >= lexer->lenght){
-        token.kind = TOKEN_END;
+        token.class = TOKEN_EOF;
         token.lenght = 0;
         return token;
     }
@@ -29,7 +29,7 @@ Token lexer_next(Lexer *lexer){
     if (lexer->content[lexer->cursor] == '\"'){
         lexer->cursor++;
         token.lenght++;
-        token.kind = TOKEN_STRING;
+        token.class = TOKEN_STRING;
         // while it is not a double quote
         while (lexer->cursor < lexer->lenght && lexer->content[lexer->cursor] != '\"' ){
             lexer->cursor++;
@@ -43,7 +43,7 @@ Token lexer_next(Lexer *lexer){
     // if separator
     if (is_separator(lexer->content[lexer->cursor])){
         lexer->cursor++;
-        token.kind = TOKEN_SEPARATOR;
+        token.class = TOKEN_SEPARATOR;
         token.lenght = 1;
         return token;
     }
@@ -52,24 +52,26 @@ Token lexer_next(Lexer *lexer){
     // if starts with a letter
     if (is_symbol_start(lexer->content[lexer->cursor])){
         // while it is a letter or a number
-        while (lexer->cursor < lexer->lenght && is_symbol(lexer->content[lexer->cursor])){
+        while (lexer->cursor < lexer->lenght && 
+        (is_symbol(lexer->content[lexer->cursor]) ||
+        is_invalid(lexer->content[lexer->cursor]))){
             lexer->cursor++;
             token.lenght++;
         }
         // check if it is a keyword
         for (int i = 0; i < KEYWORDS_COUNT; i++){
             if (strncmp(token.text, keywords[i], token.lenght) == 0){
-                token.kind = TOKEN_KEYWORD;
+                token.class = TOKEN_KEYWORD;
                 return token;
             }
         }
-        token.kind = TOKEN_IDENTIFIER;
+        token.class = TOKEN_IDENTIFIER;
         return token;
     }
 
     // if operator
     if (is_operator(lexer->content[lexer->cursor])){
-        token.kind = TOKEN_OPERATOR;
+        token.class = TOKEN_OPERATOR;
         // while it is a operator
         while (lexer->cursor < lexer->lenght && is_operator(lexer->content[lexer->cursor])){
             lexer->cursor++;
@@ -80,9 +82,12 @@ Token lexer_next(Lexer *lexer){
 
     // TODO if number
     if (isdigit(lexer->content[lexer->cursor])){
-        token.kind = TOKEN_NUMBER;
+        token.class = TOKEN_NUMBER;
         // while it is a number
-        while (lexer->cursor < lexer->lenght && (isdigit(lexer->content[lexer->cursor]) || lexer->content[lexer->cursor] == '.')){
+        while (lexer->cursor < lexer->lenght && 
+        (isdigit(lexer->content[lexer->cursor]) || 
+        lexer->content[lexer->cursor] == '.') ||
+        is_invalid(lexer->content[lexer->cursor])){
             lexer->cursor++;
             token.lenght++;
         }
@@ -93,16 +98,16 @@ Token lexer_next(Lexer *lexer){
 
 
     lexer->cursor++;
-    token.kind = TOKEN_INVALID;
+    token.class = TOKEN_INVALID;
     token.lenght = 1;
 
 
     return token;
 };
 
-char* token_to_text(TokenKind kind){
-    switch(kind){
-        case TOKEN_END:
+char* token_class_to_text(TokenClass class){
+    switch(class){
+        case TOKEN_EOF:
             return "TOKEN_END";
         case TOKEN_INVALID:
             return "TOKEN_INVALID";
@@ -118,11 +123,16 @@ char* token_to_text(TokenKind kind){
             return "TOKEN_NUMBER";
         case TOKEN_STRING:
             return "TOKEN_STRING";
+
         default:
             return "TOKEN_UNKNOWN";
     }
     return NULL;
 };
+
+char* token_kind_to_text(TokenKind kind){
+    return "TOKEN_UNKNOWN";
+}
 
 int is_operator(char c){
     return  c ==    '+'  ||   // plus
@@ -163,6 +173,18 @@ int is_digit(char c){
     return isdigit(c);
 }
 
+int is_invalid(char c){
+    return  c ==    '@'  ||   // at
+            c ==    '$'  ||   // dollar
+            c ==    '%'  ||   // percent
+            c ==    '&'  ||   // ampersand
+            c ==    '|'  ||   // pipe
+            c ==    '\\' ||   // backslash
+            c ==    '^'  ||   // caret
+            c ==    '~'  ||   // tilde
+            c ==    '`';      // backtick
+}
+
 void lexer_trim_left(Lexer *lexer){
     while (lexer->cursor < lexer->lenght && isspace(lexer->content[lexer->cursor])){
         if (lexer->content[lexer->cursor] == '\n'){
@@ -174,4 +196,8 @@ void lexer_trim_left(Lexer *lexer){
         }
         lexer->cursor++;
     }
+}
+
+TokenKind evaluate_token(Token token){
+    return TOKEN_UNKNOWN;
 }
