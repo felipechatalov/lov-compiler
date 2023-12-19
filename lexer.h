@@ -17,17 +17,49 @@ typedef enum {
     TOKEN_KW_ELSE,
     TOKEN_KW_IMPORT,
     TOKEN_KW_DEF,
-    // ...
-    TOKEN_NUMBER_INT,
-    TOKEN_NUMBER_FLOAT,
-    TOKEN_VALUE_STRING,
-    // ...
-    TOKEN_VAR_IDENTIFIER,
-    // ...
-    TOKEN_OPERATOR_PLUS,
-    TOKEN_OPERATOR_MINUS,
-    TOKEN_SEPARATOR_COMMA,
-    // ...
+    TOKEN_KW_RETURN,
+    TOKEN_KW_FOR,
+    TOKEN_KW_WHILE,
+    
+    TOKEN_TYPE_INT,
+    TOKEN_TYPE_FLOAT,
+    TOKEN_TYPE_STRING,
+    
+    TOKEN_OP_PLUS,
+    TOKEN_OP_MINUS,
+    TOKEN_OP_STAR,          
+    TOKEN_OP_SLASH,
+    TOKEN_OP_EQUAL,
+    TOKEN_OP_DOUBLE_EQUAL,
+    TOKEN_OP_NOT_EQUAL,
+    TOKEN_OP_GREATER_THAN,
+    TOKEN_OP_LESS_THAN,
+    TOKEN_OP_GREATER_THAN_OR_EQUAL,
+    TOKEN_OP_LESS_THAN_OR_EQUAL,
+    TOKEN_OP_NOT,
+    TOKEN_OP_PLUS_EQUAL,
+    TOKEN_OP_MINUS_EQUAL,
+    TOKEN_OP_STAR_EQUAL,
+    TOKEN_OP_SLASH_EQUAL,
+    TOKEN_OP_PLUS_PLUS,
+    TOKEN_OP_MINUS_MINUS,
+
+    TOKEN_SEP_COMMA,
+    TOKEN_SEP_DOT,
+    TOKEN_SEP_COLON,
+    TOKEN_SEP_DOUBLE_QUOTE,
+    TOKEN_SEP_SINGLE_QUOTE,
+    TOKEN_SEP_HASH,
+    TOKEN_SEP_OPEN_PARENTHESIS,
+    TOKEN_SEP_CLOSE_PARENTHESIS,
+    TOKEN_SEP_OPEN_CURLY_BRACE,
+    TOKEN_SEP_CLOSE_CURLY_BRACE,
+    TOKEN_SEP_OPEN_SQUARE_BRACKET,
+    TOKEN_SEP_CLOSE_SQUARE_BRACKET,
+    TOKEN_SEP_SEMICOLON,
+
+    TOKEN_ID,
+
     TOKEN_UNKNOWN,
 } TokenKind;
 
@@ -49,7 +81,7 @@ typedef struct {
     int lineStart;
 } Lexer;
 
-const char *keywords[] = {
+const char* valid_symbols[] = {
     "if",
     "else",
     "import",
@@ -59,11 +91,8 @@ const char *keywords[] = {
     "while",
     "int",
     "float",
-    "char",
-};
-const int KEYWORDS_COUNT = sizeof(keywords) / sizeof(keywords[0]);
+    "str",
 
-const char *operators[] = {
     "+",   // plus
     "-",   // minus
     "*",   // star
@@ -82,14 +111,11 @@ const char *operators[] = {
     "/=",  // slash equal
     "++",  // plus plus
     "--",  // minus minus
-};
-const int OPERATORS_COUNT = sizeof(operators) / sizeof(operators[0]);
 
-const char *separators[] = {
     ",",   // comma
     ".",   // dot
     ":",   // colon
-//    "\"",  // double quote
+    "\"",  // double quote
     "'",   // single quote
     "#",   // hash
     "(",   // open parenthesis
@@ -100,9 +126,111 @@ const char *separators[] = {
     "]",   // close square bracket
     ";",   // semicolon
 };
-const int SEPARATORS_COUNT = sizeof(separators) / sizeof(separators[0]);
+
+const int KEYWORDS_COUNT = 10;
+const int OPERATORS_COUNT = 18;
+const int SEPARATORS_COUNT = 13;
 
 
+const TokenKind token_kinds[] = {
+    TOKEN_KW_IF,
+    TOKEN_KW_ELSE,
+    TOKEN_KW_IMPORT,
+    TOKEN_KW_DEF,
+    TOKEN_KW_RETURN,
+    TOKEN_KW_FOR,
+    TOKEN_KW_WHILE,
+    
+    TOKEN_TYPE_INT,
+    TOKEN_TYPE_FLOAT,
+    TOKEN_TYPE_STRING,
+    
+    TOKEN_OP_PLUS,
+    TOKEN_OP_MINUS,
+    TOKEN_OP_STAR,          
+    TOKEN_OP_SLASH,
+    TOKEN_OP_EQUAL,
+    TOKEN_OP_DOUBLE_EQUAL,
+    TOKEN_OP_NOT_EQUAL,
+    TOKEN_OP_GREATER_THAN,
+    TOKEN_OP_LESS_THAN,
+    TOKEN_OP_GREATER_THAN_OR_EQUAL,
+    TOKEN_OP_LESS_THAN_OR_EQUAL,
+    TOKEN_OP_NOT,
+    TOKEN_OP_PLUS_EQUAL,
+    TOKEN_OP_MINUS_EQUAL,
+    TOKEN_OP_STAR_EQUAL,
+    TOKEN_OP_SLASH_EQUAL,
+    TOKEN_OP_PLUS_PLUS,
+    TOKEN_OP_MINUS_MINUS,
+
+    TOKEN_SEP_COMMA,
+    TOKEN_SEP_DOT,
+    TOKEN_SEP_COLON,
+    TOKEN_SEP_DOUBLE_QUOTE,
+    TOKEN_SEP_SINGLE_QUOTE,
+    TOKEN_SEP_HASH,
+    TOKEN_SEP_OPEN_PARENTHESIS,
+    TOKEN_SEP_CLOSE_PARENTHESIS,
+    TOKEN_SEP_OPEN_CURLY_BRACE,
+    TOKEN_SEP_CLOSE_CURLY_BRACE,
+    TOKEN_SEP_OPEN_SQUARE_BRACKET,
+    TOKEN_SEP_CLOSE_SQUARE_BRACKET,
+    TOKEN_SEP_SEMICOLON,
+
+    TOKEN_ID,
+    TOKEN_UNKNOWN,
+};
+
+char* token_kind_list[] = {
+    "TOKEN_KW_IF",
+    "TOKEN_KW_ELSE",
+    "TOKEN_KW_IMPORT",
+    "TOKEN_KW_DEF",
+    "TOKEN_KW_RETURN",
+    "TOKEN_KW_FOR",
+    "TOKEN_KW_WHILE",
+    
+    "TOKEN_TYPE_INT",
+    "TOKEN_TYPE_FLOAT",
+    "TOKEN_TYPE_STRING",
+    
+    "TOKEN_OP_PLUS",
+    "TOKEN_OP_MINUS",
+    "TOKEN_OP_STAR",          
+    "TOKEN_OP_SLASH",
+    "TOKEN_OP_EQUAL",
+    "TOKEN_OP_DOUBLE_EQUAL",
+    "TOKEN_OP_NOT_EQUAL",
+    "TOKEN_OP_GREATER_THAN",
+    "TOKEN_OP_LESS_THAN",
+    "TOKEN_OP_GREATER_THAN_OR_EQUAL",
+    "TOKEN_OP_LESS_THAN_OR_EQUAL",
+    "TOKEN_OP_NOT",
+    "TOKEN_OP_PLUS_EQUAL",
+    "TOKEN_OP_MINUS_EQUAL",
+    "TOKEN_OP_STAR_EQUAL",
+    "TOKEN_OP_SLASH_EQUAL",
+    "TOKEN_OP_PLUS_PLUS",
+    "TOKEN_OP_MINUS_MINUS",
+
+    "TOKEN_SEP_COMMA",
+    "TOKEN_SEP_DOT",
+    "TOKEN_SEP_COLON",
+    "TOKEN_SEP_DOUBLE_QUOTE",
+    "TOKEN_SEP_SINGLE_QUOTE",
+    "TOKEN_SEP_HASH",
+    "TOKEN_SEP_OPEN_PARENTHESIS",
+    "TOKEN_SEP_CLOSE_PARENTHESIS",
+    "TOKEN_SEP_OPEN_CURLY_BRACE",
+    "TOKEN_SEP_CLOSE_CURLY_BRACE",
+    "TOKEN_SEP_OPEN_SQUARE_BRACKET",
+    "TOKEN_SEP_CLOSE_SQUARE_BRACKET",
+    "TOKEN_SEP_SEMICOLON",
+
+    "TOKEN_ID",
+    "TOKEN_UNKNOWN",
+};
 
 Lexer lexer_new(const char *content, int lenght);
 Token lexer_next(Lexer *lexer);

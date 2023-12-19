@@ -60,7 +60,7 @@ Token lexer_next(Lexer *lexer){
         }
         // check if it is a keyword
         for (int i = 0; i < KEYWORDS_COUNT; i++){
-            if (strncmp(token.text, keywords[i], token.lenght) == 0){
+            if (strncmp(token.text, valid_symbols[i], token.lenght) == 0){
                 token.class = TOKEN_KEYWORD;
                 return token;
             }
@@ -80,12 +80,13 @@ Token lexer_next(Lexer *lexer){
         return token;
     }
 
-    // TODO if number
+    // if number
     if (isdigit(lexer->content[lexer->cursor])){
         token.class = TOKEN_NUMBER;
         // while it is a number
         while (lexer->cursor < lexer->lenght && 
-        (isdigit(lexer->content[lexer->cursor]) || 
+        (isdigit(lexer->content[lexer->cursor]) ||
+        is_symbol(lexer->content[lexer->cursor]) || 
         lexer->content[lexer->cursor] == '.') ||
         is_invalid(lexer->content[lexer->cursor])){
             lexer->cursor++;
@@ -131,7 +132,7 @@ char* token_class_to_text(TokenClass class){
 };
 
 char* token_kind_to_text(TokenKind kind){
-    return "TOKEN_UNKNOWN";
+    return token_kind_list[kind];
 }
 
 int is_operator(char c){
@@ -198,6 +199,93 @@ void lexer_trim_left(Lexer *lexer){
     }
 }
 
+int is_valid_int(const char *text, int lenght){
+    int i;
+    for (i = 0; i < lenght; i++){
+        if (!isdigit(text[i])){
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int is_valid_float(const char *text, int lenght){
+    int i;
+    int dot = 0;
+    for (i = 0; i < lenght; i++){
+        if (text[i] == '.'){
+            dot++;
+            if (dot > 1){
+                return 0;
+            }
+        }
+        else if (!isdigit(text[i])){
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int is_valid_identifier(const char *text, int lenght){
+    if (!is_symbol_start(text[0])){
+        return 0;
+    }
+    int i = 1;
+    for (i = 1; i < lenght; i++){
+        if (!is_symbol(text[i])){
+            return 0;
+        }
+    }
+    return 1;
+}
+
 TokenKind evaluate_token(Token token){
-    return TOKEN_UNKNOWN;
+    //printf("received: %.*s\n", token.lenght, token.text);
+    //printf("class: %s\n", token_class_to_text(token.class));
+    int i;
+    switch(token.class){
+        case TOKEN_KEYWORD:
+            for (int i = 0; i < KEYWORDS_COUNT; i++){
+                if (strncmp(token.text, valid_symbols[i], token.lenght) == 0){
+                    return token_kinds[i];
+                }
+            }
+        case TOKEN_OPERATOR:
+            for (int i = 0; i < OPERATORS_COUNT; i++){
+                if (strncmp(token.text, valid_symbols[i + KEYWORDS_COUNT], token.lenght) == 0){
+                    return token_kinds[i + KEYWORDS_COUNT];
+                }
+            }
+
+        case TOKEN_SEPARATOR:
+            for (int i = 0; i < SEPARATORS_COUNT; i++){
+                if (strncmp(token.text, valid_symbols[i + KEYWORDS_COUNT + OPERATORS_COUNT], token.lenght) == 0){
+                    return token_kinds[i + KEYWORDS_COUNT + OPERATORS_COUNT];
+                }
+            }
+
+        case TOKEN_IDENTIFIER:
+            if (is_valid_identifier(token.text, token.lenght)){
+                return TOKEN_ID;
+            }
+            return TOKEN_UNKNOWN;
+
+        case TOKEN_NUMBER:
+            // TODO check if is int or float
+            if (is_valid_int(token.text, token.lenght))
+                return TOKEN_TYPE_INT;
+            if (is_valid_float(token.text, token.lenght))
+                return TOKEN_TYPE_FLOAT;
+            return TOKEN_UNKNOWN;
+
+        case TOKEN_STRING:
+            return TOKEN_TYPE_STRING;
+
+        case TOKEN_INVALID:
+            return TOKEN_UNKNOWN;
+
+        default:
+            return TOKEN_UNKNOWN;
+    }
+
 }
