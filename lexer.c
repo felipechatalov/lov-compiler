@@ -1,5 +1,10 @@
 #include "lexer.h"
 #include <stdlib.h>
+#include <string.h>
+#include <wctype.h>
+#include <ctype.h>
+
+
 
 // https://en.wikipedia.org/wiki/Lexical_analysis
 
@@ -87,8 +92,8 @@ Token lexer_next(Lexer *lexer){
         while (lexer->cursor < lexer->lenght && 
         (isdigit(lexer->content[lexer->cursor]) ||
         is_symbol(lexer->content[lexer->cursor]) || 
-        lexer->content[lexer->cursor] == '.') ||
-        is_invalid(lexer->content[lexer->cursor])){
+        lexer->content[lexer->cursor] == '.') &&
+        !is_invalid(lexer->content[lexer->cursor])){
             lexer->cursor++;
             token.lenght++;
         }
@@ -262,6 +267,5 @@ TokenKind evaluate_token(Token token){
         }
     else if (token.class == TOKEN_STRING) return TOKEN_VALUE_STRING;
     else if (token.class == TOKEN_INVALID) return TOKEN_UNKNOWN;
-    else return TOKEN_UNKNOWN;
-
+    return TOKEN_UNKNOWN;
 }
