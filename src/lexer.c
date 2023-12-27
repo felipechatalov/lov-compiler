@@ -1,4 +1,5 @@
-#include "lexer.h"
+#include "include/lexer.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <wctype.h>
@@ -64,7 +65,7 @@ Token lexer_next(Lexer *lexer){
             token.lenght++;
         }
         // check if it is a keyword
-        for (int i = 0; i < KEYWORDS_COUNT; i++){
+        for (int i = 0; i < TOKEN_LOOK_UP_TABLE_SIZE; i++){
             if (strncmp(token.text, TokenLookUpTable[i].text, token.lenght) == 0){
                 token.class = TOKEN_KEYWORD;
                 return token;

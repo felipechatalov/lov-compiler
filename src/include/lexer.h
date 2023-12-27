@@ -138,11 +138,6 @@ TableToken TokenLookUpTable[] = {
 };
 int TOKEN_LOOK_UP_TABLE_SIZE = sizeof(TokenLookUpTable) / sizeof(TokenLookUpTable[0]);
 
-const int KEYWORDS_COUNT = 10;
-const int OPERATORS_COUNT = 18;
-const int SEPARATORS_COUNT = 13;
-
-
 const TokenKind token_kinds[] = {
     TOKEN_KW_IF,
     TOKEN_KW_ELSE,
