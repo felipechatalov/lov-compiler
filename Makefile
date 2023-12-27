@@ -1,13 +1,20 @@
-CC = gcc
-SRC_PATH = ./
-C_INCLUDE = 
-C_FLAGS = -Wall
+EXEC = compiler.out
+SOURCES = ${wildcard src/*.c}
+OBJECTS = ${SOURCES:.c=.o}
+FLAGS = -Wall
 
-all:compiler
-lexer: ${SRC_PATH}/lexer.c
-	echo "Compiling lexer"
-	${CC} ${C_FLAGS} ${C_INCLUDE} ${SRC_PATH}/lexer.c -o lexer
 
-compiler: ${SRC_PATH}/compiler.c
-	echo "Compiling compiler"
-	${CC} ${C_FLAGS} ${C_INCLUDE} ${SRC_PATH}/compiler.c -o compiler
+
+${EXEC}: ${OBJECTS}
+	gcc ${FLAGS} ${OBJECTS} -o ${EXEC}	
+
+%.o: %.c include/%.h
+	gcc -c ${FLAGS} $< -o ${EXEC}
+
+clean:
+	-rm *.out
+	-rm *.o
+	-rm src/*.o
+
+lint:
+	clang-tidy src/*.c src/include/*.h
