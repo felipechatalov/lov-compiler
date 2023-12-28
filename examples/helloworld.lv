@@ -1,0 +1,26 @@
+int main(int: argc, string: argv){
+    print("Hello World!\n");
+
+    int a;
+    int b = 10;
+    float c = 5.5;
+    char d = 'a';
+    string e = "We are here";
+
+    a = 5;
+
+
+    if (a == 5){
+        print("a is 5\n");
+    }
+    else{
+        print("a is not 5\n");
+    }
+
+    while (b > 0){
+        print("b value ", b, "\n");
+        b = b - 1;
+    }
+
+    return 0;
+}
