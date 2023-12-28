@@ -7,18 +7,16 @@
     int yylex();
     void yyerror(const char* s);
 
-    typedef struct sym {
+    typedef struct {
         char* name;
-        int value;
-        struct sym* next;
-    } sym;
+        char* tpye;
+        int line;
+    } symbol;
 
-    sym* sym_table = NULL;
+    symbol* sym_table[100];
 
-    void init_sym_table();
-    void add_symbol(char* name, int value);
-    int get_value(char* name);
-
+    void add_symbol(char* name, char* type, int line);
+    int exists_symbol_table(char*name);
 
 %}
 
@@ -45,7 +43,7 @@ line: assignment ';'        {;}
     | term ';'              { ; }
     ;
 
-assignment: identifier '=' expr {add_symbol($1, $3); }
+assignment: identifier '=' expr {printf("[Parser] Read: `%s = %d`\n", $1, $3); add_symbol($1, "identifier", yylen); }
     ;
 
 expr: term {$$ = $1;}
@@ -54,40 +52,26 @@ expr: term {$$ = $1;}
     ;
 
 term : number {$$ = $1;}
-    | identifier { printf("found %s\n", $1);}
+    | identifier { printf("[Parser] indentifier: %s\n", $1);}
     ;
 
 %%
 
-
-void init_sym_table() {
-}
-
-void add_symbol(char* namev, int value) {
-    sym* symbol = malloc(sizeof(sym));
-    symbol->name = namev;
-    symbol->value = value;
-    symbol->next = sym_table;
-    sym_table = symbol;
-
-    printf("[add_symbol] assigned %s with value %d\n", namev, value);
-    printf("[add_symbol] value of %s at table is %d\n", namev, get_value(namev));
+void add_symbol(char* name, char* type, int line) {
+    printf("[add_symbol] uninplemented\n");
 }
 
 int get_value(char* namev) {
-    printf("[get_value] looking for %s\n", namev);
+    printf("[get_value] uninplemented\n");
+    return 0;
+}
 
-    sym* symbol = sym_table;
-    while (symbol != NULL) {
-        if (strcmp(symbol->name, namev) == 0) {
-            return symbol->value;
-        }
-        symbol = symbol->next;
-    }
-    yyerror("Undefined variable");
+int exists_symbol_table(char*name){
+    printf("[exists_symbol_table] uninplemented\n");
     return 0;
 }
 
 void yyerror(const char* s) {
     fprintf(stderr, "%s\n", s);
 }
+
