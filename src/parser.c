@@ -3,20 +3,20 @@
 
 #include <stdlib.h>
 
-void parser_init(){
 
+Parser* parser_new(Lexer* lexer){
+    Parser *parser = malloc(sizeof(Parser));
+    parser->lexer = lexer;
+    //parser->token = lexer_next(lexer);
+    return parser;
 }
 
-char* parser_binary_op(TokenKind kind, Expr left, Expr right){
-    return NULL;
-}
+Token* parser_eat(Parser *parser, int type){
 
-/*
-{
-"kind": "binary_op",
-"payload": {
-    "op": op_token,
-    "lhs": lhs,
-    "rhs": rhs
+    if (parser->token->kind != type){
+        printf("[Parser]: Expected: `%s`, got: `%s`\n", token_kind_to_text(type), token_kind_to_text(parser->token->kind));
+        exit(1);
+    }
+
+    
 }
-*/

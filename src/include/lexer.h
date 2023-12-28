@@ -244,8 +244,8 @@ char* token_kind_list[] = {
     "TOKEN_UNKNOWN",
 };
 
-Lexer lexer_new(const char *content, int lenght);
-Token lexer_next(Lexer *lexer);
+Lexer* lexer_new(const char *content, int lenght);
+Token* lexer_next(Lexer *lexer);
 int is_symbol_start(char c);
 int is_symbol(char c);
 void lexer_trim_left(Lexer *lexer);
@@ -255,6 +255,6 @@ int is_digit(char c);
 int is_invalid(char c);
 char* token_class_to_text(TokenClass class);
 char* token_kind_to_text(TokenKind kind);
-TokenKind evaluate_token(Token token);
+TokenKind evaluate_token(Token* token);
 
 #endif // LEXER_H

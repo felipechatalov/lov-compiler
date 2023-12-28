@@ -5,52 +5,54 @@
 #include <wctype.h>
 #include <ctype.h>
 
-
-
 // https://en.wikipedia.org/wiki/Lexical_analysis
 
-Lexer lexer_new(const char *content, int lenght){
-    Lexer lexer = {0};
-    lexer.content = content;
-    lexer.lenght = lenght;
+Lexer* lexer_new(const char *content, int lenght){
+    Lexer *lexer = malloc(sizeof(Lexer));
+    lexer->content = content;
+    lexer->lenght = lenght;
+    lexer->cursor = 0;
+    lexer->line = 1;
+    lexer->column = 1;
+    lexer->lineStart = 0;
+
     return lexer;
 };
 
-Token lexer_next(Lexer *lexer){
+Token* lexer_next(Lexer *lexer){
 
     lexer_trim_left(lexer);    
 
-    Token token = {
-        .text = &lexer->content[lexer->cursor]
-    };
+    Token* token = malloc(sizeof(Token));
+    token->text = &lexer->content[lexer->cursor];
 
     // if end of file
     if (lexer->cursor >= lexer->lenght){
-        token.class = TOKEN_EOF;
-        token.lenght = 0;
+        token->class = TOKEN_EOF;
+        token->lenght = 0;
         return token;
     }
 
     // if string
     if (lexer->content[lexer->cursor] == '\"'){
         lexer->cursor++;
-        token.lenght++;
-        token.class = TOKEN_STRING;
+        token->lenght++;
+        token->class = TOKEN_STRING;
         // while it is not a double quote
         while (lexer->cursor < lexer->lenght && lexer->content[lexer->cursor] != '\"' ){
             lexer->cursor++;
-            token.lenght++;
+            token->lenght++;
         }
         lexer->cursor++;
-        token.lenght++;
+        token->lenght++;
         return token;
     }
 
     // if separator
     if (is_separator(lexer->content[lexer->cursor])){
         lexer->cursor++;
-        token.class = TOKEN_SEPARATOR;
-        token.lenght = 1;
+        token->class = TOKEN_SEPARATOR;
+        token->lenght = 1;
         return token;
     }
 
@@ -62,33 +64,33 @@ Token lexer_next(Lexer *lexer){
         (is_symbol(lexer->content[lexer->cursor]) ||
         is_invalid(lexer->content[lexer->cursor]))){
             lexer->cursor++;
-            token.lenght++;
+            token->lenght++;
         }
         // check if it is a keyword
         for (int i = 0; i < TOKEN_LOOK_UP_TABLE_SIZE; i++){
-            if (strncmp(token.text, TokenLookUpTable[i].text, token.lenght) == 0){
-                token.class = TOKEN_KEYWORD;
+            if (strncmp(token->text, TokenLookUpTable[i].text, token->lenght) == 0){
+                token->class = TOKEN_KEYWORD;
                 return token;
             }
         }
-        token.class = TOKEN_IDENTIFIER;
+        token->class = TOKEN_IDENTIFIER;
         return token;
     }
 
     // if operator
     if (is_operator(lexer->content[lexer->cursor])){
-        token.class = TOKEN_OPERATOR;
+        token->class = TOKEN_OPERATOR;
         // while it is a operator
         while (lexer->cursor < lexer->lenght && is_operator(lexer->content[lexer->cursor])){
             lexer->cursor++;
-            token.lenght++;
+            token->lenght++;
         }
         return token;
     }
 
     // if number
     if (isdigit(lexer->content[lexer->cursor])){
-        token.class = TOKEN_NUMBER;
+        token->class = TOKEN_NUMBER;
         // while it is a number
         while (lexer->cursor < lexer->lenght && 
         (isdigit(lexer->content[lexer->cursor]) ||
@@ -96,7 +98,7 @@ Token lexer_next(Lexer *lexer){
         lexer->content[lexer->cursor] == '.') &&
         !is_invalid(lexer->content[lexer->cursor])){
             lexer->cursor++;
-            token.lenght++;
+            token->lenght++;
         }
         return token;
     }
@@ -105,8 +107,8 @@ Token lexer_next(Lexer *lexer){
 
 
     lexer->cursor++;
-    token.class = TOKEN_INVALID;
-    token.lenght = 1;
+    token->class = TOKEN_INVALID;
+    token->lenght = 1;
 
 
     return token;
@@ -245,28 +247,28 @@ int is_valid_identifier(const char *text, int lenght){
     return 1;
 }
 
-TokenKind evaluate_token(Token token){
+TokenKind evaluate_token(Token* token){
     //printf("received: %.*s\n", token.lenght, token.text);
     //printf("class: %s\n", token_class_to_text(token.class));
     int i;
 
-    if (token.class == TOKEN_KEYWORD || token.class == TOKEN_OPERATOR || token.class == TOKEN_SEPARATOR){
+    if (token->class == TOKEN_KEYWORD || token->class == TOKEN_OPERATOR || token->class == TOKEN_SEPARATOR){
         for (i = 0; i < TOKEN_LOOK_UP_TABLE_SIZE; i++){
-            if (strncmp(token.text, TokenLookUpTable[i].text, token.lenght) == 0){
+            if (strncmp(token->text, TokenLookUpTable[i].text, token->lenght) == 0){
                 return TokenLookUpTable[i].kind;
             }
         }
     }
-    else if (token.class == TOKEN_IDENTIFIER){
-        if (is_valid_identifier(token.text, token.lenght)) return TOKEN_ID;
+    else if (token->class == TOKEN_IDENTIFIER){
+        if (is_valid_identifier(token->text, token->lenght)) return TOKEN_ID;
         return TOKEN_UNKNOWN;
     }
-    else if (token.class == TOKEN_NUMBER){
-        if (is_valid_int(token.text, token.lenght)) return TOKEN_VALUE_INT;
-        if (is_valid_float(token.text, token.lenght)) return TOKEN_VALUE_FLOAT;
+    else if (token->class == TOKEN_NUMBER){
+        if (is_valid_int(token->text, token->lenght)) return TOKEN_VALUE_INT;
+        if (is_valid_float(token->text, token->lenght)) return TOKEN_VALUE_FLOAT;
         return TOKEN_UNKNOWN;
         }
-    else if (token.class == TOKEN_STRING) return TOKEN_VALUE_STRING;
-    else if (token.class == TOKEN_INVALID) return TOKEN_UNKNOWN;
+    else if (token->class == TOKEN_STRING) return TOKEN_VALUE_STRING;
+    else if (token->class == TOKEN_INVALID) return TOKEN_UNKNOWN;
     return TOKEN_UNKNOWN;
 }
