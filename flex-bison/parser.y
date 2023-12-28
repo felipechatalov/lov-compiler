@@ -34,16 +34,17 @@
 %type <intval> line expr term
 %type <strval> assignment
 
+
 %%
 
-line: assignment ';'        {;}
+
+line: assignment ';'         { ; }
     | print expr ';'         {printf("%d\n", $2);}
-    | line assignment ';'   {;}
     | line print expr ';'    {printf("%d\n", $3);}
-    | term ';'              { ; }
+    | term ';'               { ; }
     ;
 
-assignment: identifier '=' expr {printf("[Parser] Read: `%s = %d`\n", $1, $3); add_symbol($1, "identifier", yylen); }
+assignment: identifier '=' expr {printf("[Parser] Read: `%s = %d`\n", $1, $3); add_symbol($1, "identifier", yylen); $$ = $1;}
     ;
 
 expr: term {$$ = $1;}
@@ -55,7 +56,9 @@ term : number {$$ = $1;}
     | identifier { printf("[Parser] indentifier: %s\n", $1);}
     ;
 
+
 %%
+
 
 void add_symbol(char* name, char* type, int line) {
     printf("[add_symbol] uninplemented\n");
