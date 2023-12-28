@@ -24,8 +24,7 @@ whitespace [ \t\n]
 %%
 
 "print"         { return print; }
-"exit"          { return exit_command; }
-{ID}*           { printf("lexer >%s<, %d\n", yytext, yyleng); yylval.strval = strdup(yytext); return identifier; }
+{ID}*           { yylval.strval = strdup(yytext); return identifier; }
 {DIGIT}+        { yylval.intval = atoi(yytext); return number; }
 [-+=;]          { return yytext[0]; }
 [ \t\n]         { ; }
