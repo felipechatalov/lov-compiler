@@ -7,7 +7,7 @@
 
 // https://en.wikipedia.org/wiki/Lexical_analysis
 
-Lexer* lexer_new(const char *content, int lenght){
+Lexer* lexer_new(char *content, int lenght){
     Lexer *lexer = malloc(sizeof(Lexer));
     lexer->content = content;
     lexer->lenght = lenght;

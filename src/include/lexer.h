@@ -244,7 +244,7 @@ char* token_kind_list[] = {
     "TOKEN_UNKNOWN",
 };
 
-Lexer* lexer_new(const char *content, int lenght);
+Lexer* lexer_new(char *content, int lenght);
 Token* lexer_next(Lexer *lexer);
 int is_symbol_start(char c);
 int is_symbol(char c);
