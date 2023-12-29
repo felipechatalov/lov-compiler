@@ -256,5 +256,8 @@ int is_invalid(char c);
 char* token_class_to_text(TokenClass class);
 char* token_kind_to_text(TokenKind kind);
 TokenKind evaluate_token(Token* token);
+Token* create_token(TokenClass class, TokenKind kind, const char *text, int lenght, int line, int column);
+
+
 
 #endif // LEXER_H

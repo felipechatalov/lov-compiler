@@ -23,36 +23,52 @@ Token* lexer_next(Lexer *lexer){
 
     lexer_trim_left(lexer);    
 
-    Token* token = malloc(sizeof(Token));
-    token->text = &lexer->content[lexer->cursor];
+    Token* token;
+    int token_lenght = 0;
+
 
     // if end of file
     if (lexer->cursor >= lexer->lenght){
-        token->class = TOKEN_EOF;
-        token->lenght = 0;
+        token = create_token(TOKEN_EOF, 
+                            TOKEN_UNKNOWN, 
+                            "", 
+                            0, 
+                            lexer->line, 
+                            lexer->column);
+
         return token;
     }
 
     // if string
     if (lexer->content[lexer->cursor] == '\"'){
         lexer->cursor++;
-        token->lenght++;
-        token->class = TOKEN_STRING;
+        token_lenght++;
         // while it is not a double quote
         while (lexer->cursor < lexer->lenght && lexer->content[lexer->cursor] != '\"' ){
             lexer->cursor++;
-            token->lenght++;
+            token_lenght++;
         }
         lexer->cursor++;
-        token->lenght++;
+        token_lenght++;
+        token = create_token(TOKEN_STRING, 
+                            TOKEN_UNKNOWN, 
+                            lexer->content + lexer->cursor - token_lenght, 
+                            token_lenght, 
+                            lexer->line, 
+                            lexer->column);
         return token;
     }
 
     // if separator
     if (is_separator(lexer->content[lexer->cursor])){
         lexer->cursor++;
-        token->class = TOKEN_SEPARATOR;
-        token->lenght = 1;
+        // TODO search at token lookup to get its kind
+        token = create_token(TOKEN_SEPARATOR, 
+                            TOKEN_UNKNOWN, 
+                            lexer->content + lexer->cursor - 1, 
+                            1, 
+                            lexer->line, 
+                            lexer->column);
         return token;
     }
 
@@ -64,33 +80,47 @@ Token* lexer_next(Lexer *lexer){
         (is_symbol(lexer->content[lexer->cursor]) ||
         is_invalid(lexer->content[lexer->cursor]))){
             lexer->cursor++;
-            token->lenght++;
+            token_lenght++;
         }
         // check if it is a keyword
         for (int i = 0; i < TOKEN_LOOK_UP_TABLE_SIZE; i++){
-            if (strncmp(token->text, TokenLookUpTable[i].text, token->lenght) == 0){
-                token->class = TOKEN_KEYWORD;
+            if (strncmp(lexer->content + lexer->cursor - token_lenght, TokenLookUpTable[i].text, token_lenght) == 0){
+                token = create_token(TOKEN_KEYWORD, 
+                                    TokenLookUpTable[i].kind, 
+                                    lexer->content + lexer->cursor - token_lenght, 
+                                    token_lenght, 
+                                    lexer->line, 
+                                    lexer->column);
                 return token;
             }
         }
-        token->class = TOKEN_IDENTIFIER;
+        token = create_token(TOKEN_IDENTIFIER, 
+                            TOKEN_UNKNOWN, 
+                            lexer->content + lexer->cursor - token_lenght, 
+                            token_lenght, 
+                            lexer->line, 
+                            lexer->column);
         return token;
     }
 
     // if operator
     if (is_operator(lexer->content[lexer->cursor])){
-        token->class = TOKEN_OPERATOR;
         // while it is a operator
         while (lexer->cursor < lexer->lenght && is_operator(lexer->content[lexer->cursor])){
             lexer->cursor++;
-            token->lenght++;
+            token_lenght++;
         }
+        token = create_token(TOKEN_OPERATOR, 
+                            TOKEN_UNKNOWN, 
+                            lexer->content + lexer->cursor - token_lenght, 
+                            token_lenght, 
+                            lexer->line, 
+                            lexer->column);
         return token;
     }
 
     // if number
     if (isdigit(lexer->content[lexer->cursor])){
-        token->class = TOKEN_NUMBER;
         // while it is a number
         while (lexer->cursor < lexer->lenght && 
         (isdigit(lexer->content[lexer->cursor]) ||
@@ -98,8 +128,14 @@ Token* lexer_next(Lexer *lexer){
         lexer->content[lexer->cursor] == '.') &&
         !is_invalid(lexer->content[lexer->cursor])){
             lexer->cursor++;
-            token->lenght++;
+            token_lenght++;
         }
+        token = create_token(TOKEN_NUMBER, 
+                            TOKEN_UNKNOWN, 
+                            lexer->content + lexer->cursor - token_lenght, 
+                            token_lenght, 
+                            lexer->line, 
+                            lexer->column);
         return token;
     }
 
@@ -107,9 +143,13 @@ Token* lexer_next(Lexer *lexer){
 
 
     lexer->cursor++;
-    token->class = TOKEN_INVALID;
-    token->lenght = 1;
 
+    token = create_token(TOKEN_INVALID, 
+                        TOKEN_UNKNOWN, 
+                        lexer->content + lexer->cursor - token_lenght, 
+                        token_lenght, 
+                        lexer->line, 
+                        lexer->column);
 
     return token;
 };
@@ -245,6 +285,17 @@ int is_valid_identifier(const char *text, int lenght){
         }
     }
     return 1;
+}
+
+Token* create_token(TokenClass class, TokenKind kind, const char *text, int lenght, int line, int column){
+    Token* token = malloc(sizeof(Token));
+    token->class = class;
+    token->kind = kind;
+    token->text = text;
+    token->lenght = lenght;
+    token->line = line;
+    token->column = column;
+    return token;
 }
 
 TokenKind evaluate_token(Token* token){
