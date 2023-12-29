@@ -77,11 +77,24 @@ Token* lexer_next(Lexer *lexer){
     if (is_symbol_start(lexer->content[lexer->cursor])){
         // while it is a letter or a number
         while (lexer->cursor < lexer->lenght && 
-        (is_symbol(lexer->content[lexer->cursor]) ||
-        is_invalid(lexer->content[lexer->cursor]))){
+        is_symbol(lexer->content[lexer->cursor])){
             lexer->cursor++;
             token_lenght++;
         }
+
+        // check if stopped at invalid symbol
+        if (is_invalid(lexer->content[lexer->cursor])){
+            lexer->cursor++;
+            token_lenght++;
+            token = create_token(TOKEN_INVALID, 
+                                TOKEN_UNKNOWN, 
+                                lexer->content + lexer->cursor - token_lenght, 
+                                token_lenght, 
+                                lexer->line, 
+                                lexer->column);
+            return token;
+        }
+
         // check if it is a keyword
         for (int i = 0; i < TOKEN_LOOK_UP_TABLE_SIZE; i++){
             if (strncmp(lexer->content + lexer->cursor - token_lenght, TokenLookUpTable[i].text, token_lenght) == 0){
@@ -139,18 +152,13 @@ Token* lexer_next(Lexer *lexer){
         return token;
     }
 
-
-
-
     lexer->cursor++;
-
     token = create_token(TOKEN_INVALID, 
                         TOKEN_UNKNOWN, 
                         lexer->content + lexer->cursor - token_lenght, 
                         token_lenght, 
                         lexer->line, 
                         lexer->column);
-
     return token;
 };
 
