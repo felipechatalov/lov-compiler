@@ -18,14 +18,16 @@
 
 DIGIT [0-9]
 ID [a-zA-Z][a-zA-Z0-9]*
-whitespace [ \t\n]
-
 
 %%
 
-"print"         { return print; }
-{ID}*           { yylval.strval = strdup(yytext); return identifier; }
-{DIGIT}+        { yylval.intval = atoi(yytext); return number; }
+"print"         { return TK_PRINT; }
+
+{ID}+           { yylval.strval = strdup(yytext); return TK_IDENTIFIER; }
+{DIGIT}+        { yylval.intval = atoi(yytext); return TK_INT; }
+{DIGIT}+\.{DIGIT}*  { yylval.floatval = atof(yytext); return TK_FLOAT; }
+
+
 [-+=;]          { return yytext[0]; }
 [ \t\n]         { ; }
 .               { ; }
