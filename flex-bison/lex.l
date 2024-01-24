@@ -37,6 +37,7 @@ digit [0-9]
 "string"                            { return TK_STRING_TYPE; }
 "char"                              { return TK_CHAR_TYPE; }
 "return"                            { return TK_RETURN; }
+"main"                              { return TK_MAIN; }
 
 {alphaMin}{alphanum}*               { yylval.strval = strdup(yytext); return TK_IDENTIFIER; }
 {alphaMax}{alphanum}*               { yylval.strval = strdup(yytext); return TK_CLASS_IDENTIFIER; }
