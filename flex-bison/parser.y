@@ -36,7 +36,12 @@ line: line assignment TK_SEMICOLON            { ; }
     | line TK_PRINT expr TK_SEMICOLON         {printf("%d\n", $3);}
     | line term TK_SEMICOLON                  { ; }
     | line TK_RETURN expr TK_SEMICOLON            { printf("return %d\n", $3); }
-    |
+    | line declaration TK_SEMICOLON                { printf("declaration found\n"); }
+    | 
+    ;
+
+declaration: TK_INT_TYPE TK_IDENTIFIER {printf("Decl %s\n", $2);}    
+    | TK_INT_TYPE TK_IDENTIFIER TK_ASSIGN expr {printf("Decl %s %d\n", $2, $4);}
     ;
 
 assignment: TK_IDENTIFIER TK_ASSIGN expr {printf("[Parser] Read: `%s = %d`\n", $1, $3); $$ = $1;}
