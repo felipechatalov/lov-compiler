@@ -5,6 +5,11 @@ class Classe(int valor){
     print a;
 }
 
+char function(int a, int b){
+    int c = a + b;
+    return c;
+}
+
 int main(){
     aasdadsa = 1;
     variavelcomecamcomletrasminuscula;

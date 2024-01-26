@@ -36,7 +36,11 @@
 
 %%
 
-program: headers main '(' ')' '{' body return '}' { printf("program\n"); }
+program: headers function main '(' params ')' '{' body return '}' { printf("program\n"); }
+    ;
+
+function: function datatype TK_IDENTIFIER '(' params ')' '{' body return '}' { printf("function\n"); }
+    |
     ;
 
 headers: headers header { printf("headers\n"); }
@@ -52,7 +56,7 @@ include: TK_INCLUDE TK_STRING TK_SEMICOLON { ; }
 
 class: TK_CLASS TK_CLASS_IDENTIFIER '(' params ')' '{' body '}' { ; }
 
-params: params ',' datatype TK_IDENTIFIER { printf("params\n"); }
+params: params TK_COMMA datatype TK_IDENTIFIER { printf("params\n"); }
     | datatype TK_IDENTIFIER { printf("params\n"); }
     |
     ;
