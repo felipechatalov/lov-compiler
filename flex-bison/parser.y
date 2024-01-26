@@ -39,7 +39,8 @@
 program: main '(' ')' '{' body return '}' { printf("program\n"); }
     ;
 
-body: line { printf("body\n"); }
+body: body stmt { printf("body\n"); }
+    |
     ;
 
 main: datatype TK_MAIN { printf("main\n"); }
@@ -48,13 +49,23 @@ main: datatype TK_MAIN { printf("main\n"); }
 return: TK_RETURN expr TK_SEMICOLON { printf("return\n"); }
     ;
 
-line: line assignment TK_SEMICOLON            { printf("assignment smc\n"); }
-    | line TK_PRINT expr TK_SEMICOLON         {printf("print expr\n");}
-    | line term TK_SEMICOLON                  { printf("term smc\n"); }
-    | line declaration TK_SEMICOLON                { printf("declaration smc\n"); }
-    | 
+stmt: assignment TK_SEMICOLON                 { printf("assignment smc\n"); }
+    | TK_PRINT expr TK_SEMICOLON              {printf("print expr\n");}
+    | term TK_SEMICOLON                       { printf("term smc\n"); }
+    | declaration TK_SEMICOLON                { printf("declaration smc\n"); }
+    | TK_IF '(' condition ')' '{' body '}'    { printf("if\n"); }
+    | TK_IF '(' condition ')' '{' body '}' TK_ELSE '{' body '}' { printf("if else\n"); }
     ;
 
+condition: expr TK_EQ expr 
+    | expr TK_NE expr 
+    | expr TK_LT expr 
+    | expr TK_LE expr 
+    | expr TK_GT expr 
+    | expr TK_GE expr 
+    | expr 
+    ;
+    
 declaration: datatype TK_IDENTIFIER { ; }    
     | datatype TK_IDENTIFIER TK_ASSIGN expr { ; }
     ;

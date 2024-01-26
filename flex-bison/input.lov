@@ -1,4 +1,4 @@
-main(){
+int main(){
     aasdadsa = 1;
     variavelcomecamcomletrasminuscula;
     print 1;
@@ -10,6 +10,10 @@ main(){
     int aa = 1 + 2;
     char c = 10;
     string d = "a";
-    
+    if (a == 1) 
+        { print 1; }
+    else 
+        { print 2; }
+        
     return 0;
 }
