@@ -36,6 +36,15 @@
 
 %%
 
+program: main '(' ')' '{' body '}' { printf("program\n"); }
+    ;
+
+body: line { printf("body\n"); }
+    ;
+
+main: TK_MAIN { printf("main\n"); }
+    ;
+
 
 line: line assignment TK_SEMICOLON            { printf("assignment smc\n"); }
     | line TK_PRINT expr TK_SEMICOLON         {printf("print expr\n");}
