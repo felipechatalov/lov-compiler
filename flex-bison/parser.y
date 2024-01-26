@@ -85,7 +85,10 @@ condition: expr TK_EQ expr
     | expr TK_LT expr 
     | expr TK_LE expr 
     | expr TK_GT expr 
-    | expr TK_GE expr 
+    | expr TK_GE expr
+    | expr TK_AND expr
+    | expr TK_OR expr
+    | TK_NOT  
     | expr 
     ;
 

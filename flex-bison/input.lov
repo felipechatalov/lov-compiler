@@ -7,6 +7,12 @@ class Classe(int valor){
 
 char function(int a, int b){
     int c = a + b;
+    float d = b / c;
+    if (a or b){
+        if (not b){
+            print b;
+        }
+    }
     return c;
 }
 
