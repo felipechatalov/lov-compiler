@@ -17,7 +17,7 @@
 }
 
 %token TK_PRINT TK_IF TK_ELSE TK_WHILE TK_CLASS TK_AND TK_OR TK_NOT TK_INT_TYPE TK_FLOAT_TYPE TK_STRING_TYPE TK_CHAR_TYPE TK_RETURN TK_MAIN
-%token TK_CLASS_IDENTIFIER TK_FLOAT TK_STRING TK_CHAR
+%token TK_CLASS_IDENTIFIER   
 %token TK_LT TK_LE TK_GT TK_GE TK_EQ TK_NE TK_ASSIGN 
 %token TK_PLUS TK_MINUS TK_MULT TK_DIV
 %token TK_COMMA TK_SEMICOLON TK_DOT
@@ -25,6 +25,9 @@
 
 %token <intval> TK_INT
 %token <strval> TK_IDENTIFIER
+%token <floatval> TK_FLOAT
+%token <strval> TK_STRING
+%token <strval> TK_CHAR
 
 %type <intval> expr term
 %type <strval> assignment
@@ -40,8 +43,14 @@ line: line assignment TK_SEMICOLON            { ; }
     | 
     ;
 
-declaration: TK_INT_TYPE TK_IDENTIFIER {printf("Decl %s\n", $2);}    
-    | TK_INT_TYPE TK_IDENTIFIER TK_ASSIGN expr {printf("Decl %s %d\n", $2, $4);}
+declaration: datatype TK_IDENTIFIER {printf("Decl %s\n", $2);}    
+    | datatype TK_IDENTIFIER TK_ASSIGN expr {printf("Decl %s %d\n", $2, $4);}
+    ;
+
+datatype: TK_INT_TYPE {printf("int type\n");}
+    | TK_FLOAT_TYPE {printf("float type\n");}
+    | TK_STRING_TYPE {printf("string type\n");}
+    | TK_CHAR_TYPE {printf("char type\n");}
     ;
 
 assignment: TK_IDENTIFIER TK_ASSIGN expr {printf("[Parser] Read: `%s = %d`\n", $1, $3); $$ = $1;}
