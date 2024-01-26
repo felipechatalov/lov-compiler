@@ -4,6 +4,8 @@
     #include <ctype.h>
     #include <string.h>
 
+    // https://medium.com/codex/building-a-c-compiler-using-lex-and-yacc-446262056aaa
+    
     int yylex();
     void yyerror(const char* s);
 
@@ -35,16 +37,16 @@
 %%
 
 
-line: line assignment TK_SEMICOLON            { ; }
-    | line TK_PRINT expr TK_SEMICOLON         {printf("%d\n", $3);}
-    | line term TK_SEMICOLON                  { ; }
-    | line TK_RETURN expr TK_SEMICOLON            { printf("return %d\n", $3); }
-    | line declaration TK_SEMICOLON                { printf("declaration found\n"); }
+line: line assignment TK_SEMICOLON            { printf("assignment smc\n"); }
+    | line TK_PRINT expr TK_SEMICOLON         {printf("print expr\n");}
+    | line term TK_SEMICOLON                  { printf("term smc\n"); }
+    | line TK_RETURN expr TK_SEMICOLON            { printf("return expr smc\n"); }
+    | line declaration TK_SEMICOLON                { printf("declaration smc\n"); }
     | 
     ;
 
-declaration: datatype TK_IDENTIFIER {printf("Decl %s\n", $2);}    
-    | datatype TK_IDENTIFIER TK_ASSIGN expr {printf("Decl %s %d\n", $2, $4);}
+declaration: datatype TK_IDENTIFIER { ; }    
+    | datatype TK_IDENTIFIER TK_ASSIGN expr { ; }
     ;
 
 datatype: TK_INT_TYPE {printf("int type\n");}
@@ -53,18 +55,24 @@ datatype: TK_INT_TYPE {printf("int type\n");}
     | TK_CHAR_TYPE {printf("char type\n");}
     ;
 
-assignment: TK_IDENTIFIER TK_ASSIGN expr {printf("[Parser] Read: `%s = %d`\n", $1, $3); $$ = $1;}
+assignment: TK_IDENTIFIER TK_ASSIGN expr {;}
     ;
 
-expr: term {$$ = $1;}
-    | expr TK_PLUS term {$$ = $1 + $3;}
-    | expr TK_MINUS term {$$ = $1 - $3;}
-    | expr TK_MULT term {$$ = $1 * $3;}
-    | expr TK_DIV term {$$ = $1 / $3;}
+expr: term {;}
+    | expr TK_PLUS term { ; }
+    | expr TK_MINUS term { ; }
+    | expr TK_MULT term { ; }
+    | expr TK_DIV term { ; }
     ;
 
-term : TK_INT {$$ = $1;}
-    | TK_IDENTIFIER { printf("[Parser] indentifier: %s\n", $1);}
+value: TK_INT { ; }
+    | TK_FLOAT { ; }
+    | TK_STRING { ; }
+    | TK_CHAR { ; }
+    ;
+
+term : value { ; }
+    | TK_IDENTIFIER { ;}
     ;
 
 
