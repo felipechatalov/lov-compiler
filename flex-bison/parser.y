@@ -36,7 +36,7 @@
 
 %%
 
-program: main '(' ')' '{' body '}' { printf("program\n"); }
+program: main '(' ')' '{' body return '}' { printf("program\n"); }
     ;
 
 body: line { printf("body\n"); }
@@ -45,11 +45,12 @@ body: line { printf("body\n"); }
 main: TK_MAIN { printf("main\n"); }
     ;
 
+return: TK_RETURN expr TK_SEMICOLON { printf("return\n"); }
+    ;
 
 line: line assignment TK_SEMICOLON            { printf("assignment smc\n"); }
     | line TK_PRINT expr TK_SEMICOLON         {printf("print expr\n");}
     | line term TK_SEMICOLON                  { printf("term smc\n"); }
-    | line TK_RETURN expr TK_SEMICOLON            { printf("return expr smc\n"); }
     | line declaration TK_SEMICOLON                { printf("declaration smc\n"); }
     | 
     ;

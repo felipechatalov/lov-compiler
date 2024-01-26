@@ -5,11 +5,11 @@ main(){
     print 1 + 2;
     print 13*2;
     a = 10;
-    return 5+2;
     int a = 6;
     float b;
     int aa = 1 + 2;
     char c = 10;
     string d = "a";
+    
     return 0;
 }
