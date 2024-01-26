@@ -42,7 +42,7 @@ program: main '(' ')' '{' body return '}' { printf("program\n"); }
 body: line { printf("body\n"); }
     ;
 
-main: TK_MAIN { printf("main\n"); }
+main: datatype TK_MAIN { printf("main\n"); }
     ;
 
 return: TK_RETURN expr TK_SEMICOLON { printf("return\n"); }
