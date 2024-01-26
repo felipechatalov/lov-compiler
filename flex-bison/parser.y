@@ -80,16 +80,23 @@ stmt: assignment TK_SEMICOLON                                   { printf("assign
     | TK_WHILE '(' condition ')' '{' body '}'                   { printf("while\n"); }
     ;
 
-condition: expr TK_EQ expr 
-    | expr TK_NE expr 
-    | expr TK_LT expr 
-    | expr TK_LE expr 
-    | expr TK_GT expr 
-    | expr TK_GE expr
-    | expr TK_AND expr
-    | expr TK_OR expr
-    | TK_NOT  
-    | expr 
+
+
+condition: expr comparator_binary expr { ; }
+    | comparator_unary expr { ; }
+    ;
+
+comparator_binary: TK_EQ 
+    | TK_NE 
+    | TK_LT 
+    | TK_LE 
+    | TK_GT 
+    | TK_GE
+    | TK_AND
+    | TK_OR
+    ;
+
+comparator_unary: TK_NOT
     ;
 
 declaration: datatype TK_IDENTIFIER { ; }    
