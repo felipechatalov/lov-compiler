@@ -3,13 +3,27 @@
     #include <stdlib.h>
     #include <ctype.h>
     #include <string.h>
-
     // https://medium.com/codex/building-a-c-compiler-using-lex-and-yacc-446262056aaa
     
     int yylex();
     void yyerror(const char* s);
 
     extern int countn;
+    extern char* yytext;
+    extern FILE* yyin;
+    void add(char);
+    void insert_type();
+    int search(char *);
+    void insert_type();
+    struct symbol{
+        char* id_name;
+        char* type;
+        char* data_type;
+        int line_no;
+    }symbol_table[100];
+    int count = 0;
+    int q;
+    char type[10];
 %}
 
 
@@ -56,7 +70,7 @@ headers: headers header { printf("headers\n"); }
     |
     ;
 
-header: include { printf("include\n"); }
+header: include { printf("include\n"); add('H'); }
     | class { printf("class\n"); }
     ;
 
@@ -166,6 +180,84 @@ term : value { ; }
 
 %%
 
+int main(int argc, char **argv)
+{
+    if (argc != 2)
+    {
+        printf("Usage: %s <input_file>\n", argv[0]);
+        return 1;
+    }
+
+    FILE *fp = fopen(argv[1], "r");
+    if (fp == NULL)
+    {
+        printf("Error: could not open file %s\n", argv[1]);
+        return 1;
+    }
+
+    yyin = fp;
+
+    yyparse();
+
+
+    fclose(fp);
+
+    return 0;
+}
+
 void yyerror(const char* s) {
     fprintf(stderr, "%s\n", s);
+}
+
+void insert_type() {
+    strcpy(type, yytext);
+}
+
+int search(char *type) { 
+    int i; 
+    for(i=count-1; i>=0; i--) {
+        if(strcmp(symbol_table[i].id_name, type)==0) {   
+            return -1;
+            break;  
+        }
+    } 
+    return 0;
+}
+
+void add(char c) {
+    q=search(yytext);
+    if(!q) {
+        if(c == 'H') {
+            symbol_table[count].id_name=strdup(yytext);        
+            symbol_table[count].data_type=strdup(type);     
+            symbol_table[count].line_no=countn;    
+            symbol_table[count].type=strdup("Header");
+            count++;  
+        }  
+        else if(c == 'K') {
+            symbol_table[count].id_name=strdup(yytext);
+            symbol_table[count].data_type=strdup("N/A");
+            symbol_table[count].line_no=countn;
+            symbol_table[count].type=strdup("Keyword\t");   
+            count++;  
+        }  else if(c == 'V') {
+            symbol_table[count].id_name=strdup(yytext);
+            symbol_table[count].data_type=strdup(type);
+            symbol_table[count].line_no=countn;
+            symbol_table[count].type=strdup("Variable");   
+            count++;  
+        }  else if(c == 'C') {
+            symbol_table[count].id_name=strdup(yytext);
+            symbol_table[count].data_type=strdup("CONST");
+            symbol_table[count].line_no=countn;
+            symbol_table[count].type=strdup("Constant");   
+            count++;  
+        }  else if(c == 'F') {
+            symbol_table[count].id_name=strdup(yytext);
+            symbol_table[count].data_type=strdup(type);
+            symbol_table[count].line_no=countn;
+            symbol_table[count].type=strdup("Function");   
+            count++;  
+        }
+    }
 }
