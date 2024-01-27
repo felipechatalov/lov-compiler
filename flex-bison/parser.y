@@ -34,7 +34,7 @@
 }
 
 %token TK_PRINT TK_IF TK_ELSE TK_WHILE TK_CLASS TK_AND TK_OR TK_NOT TK_INT_TYPE TK_FLOAT_TYPE TK_STRING_TYPE TK_CHAR_TYPE TK_RETURN TK_MAIN
-%token TK_CLASS_IDENTIFIER TK_INCLUDE TK_SELF TK_READ
+%token TK_CLASS_IDENTIFIER TK_INCLUDE TK_SELF TK_READ TK_TRUE TK_FALSE
 %token TK_LT TK_LE TK_GT TK_GE TK_EQ TK_NE TK_ASSIGN 
 %token TK_PLUS TK_MINUS TK_MULT TK_DIV
 %token TK_COMMA TK_SEMICOLON TK_DOT
@@ -110,21 +110,26 @@ body: body stmt { printf("body\n"); }
 main: datatype TK_MAIN { printf("main\n"); add('F'); }
     ;
 
-return: TK_RETURN expr TK_SEMICOLON { printf("return\n"); }
+return: TK_RETURN { add('K'); } expr TK_SEMICOLON { printf("return\n"); }
     ;
 
 stmt: assignment TK_SEMICOLON                                   { printf("assignment smc\n"); }
-    | TK_PRINT expr TK_SEMICOLON                                { printf("print expr\n"); }
+    | TK_PRINT { add('K'); } expr TK_SEMICOLON                                { printf("print expr\n"); }
     | term TK_SEMICOLON                                         { printf("term smc\n"); }
     | declaration TK_SEMICOLON                                  { printf("declaration smc\n"); }
-    | TK_IF '(' condition ')' '{' body '}'                      { printf("if\n"); }
-    | TK_IF '(' condition ')' '{' body '}' TK_ELSE '{' body '}' { printf("if else\n"); }
-    | TK_WHILE '(' condition ')' '{' body '}'                   { printf("while\n"); }
-    | return                                                    { printf("return smc\n"); }
+    | TK_IF { add('K'); } '(' condition ')' '{' body '}' else                 { printf("if\n"); }
+    | TK_WHILE { add('K'); } '(' condition ')' '{' body '}'                   { printf("while\n"); }
+    | return                                                   { printf("return smc\n"); }
+    ;
+
+else: TK_ELSE {add('K');} '{' body '}' { printf("else\n"); }
+    |
     ;
 
 condition: expr comparator_binary expr { ; }
     | comparator_unary expr { ; }
+    | TK_TRUE { add('K'); } { ; }
+    | TK_FALSE { add('K'); } { ; }
     ;
 
 comparator_binary: TK_EQ 
@@ -140,7 +145,7 @@ comparator_binary: TK_EQ
 comparator_unary: TK_NOT
     ;
 
-declaration: datatype TK_IDENTIFIER { ; }    
+declaration: datatype TK_IDENTIFIER     
     | datatype TK_IDENTIFIER TK_ASSIGN expr { ; }
     | datatype TK_IDENTIFIER TK_ASSIGN TK_CLASS_IDENTIFIER '(' params_call ')' { ; }
     ;
@@ -152,7 +157,7 @@ datatype: TK_INT_TYPE {printf("int type\n"); insert_type(); }
     | TK_CLASS_IDENTIFIER {printf("class type\n"); insert_type();}
     ;
 
-assignment: TK_IDENTIFIER TK_ASSIGN expr {;}
+assignment: TK_IDENTIFIER TK_ASSIGN expr
     | TK_IDENTIFIER TK_ASSIGN TK_CLASS_IDENTIFIER '(' params_call ')' {;}
     | class_variable TK_ASSIGN expr {;}
     ;
@@ -164,10 +169,10 @@ expr: term {;}
     | expr TK_DIV term { ; }
     ;
 
-value: TK_INT { ; }
-    | TK_FLOAT { ; }
-    | TK_STRING { ; }
-    | TK_CHAR { ; }
+value: TK_INT { add('C'); }
+    | TK_FLOAT { add('C'); }
+    | TK_STRING { add('C'); }
+    | TK_CHAR { add('C'); }
     ;
 
 term : value { ; }
@@ -175,7 +180,7 @@ term : value { ; }
     | function_call { ; }
     | class_variable { ; }
     | class_function_call { ; }
-    | TK_READ '(' ')' { ; }
+    | TK_READ { add('K'); } '(' ')' { ; }
     ;
 
 
@@ -200,11 +205,15 @@ int main(int argc, char **argv)
 
     yyparse();
 
-    for (int i = 0; i < count; i++)
-    {
-        printf("%s\t%s\t%s\t%d\n", symbol_table[i].id_name, symbol_table[i].type, symbol_table[i].data_type, symbol_table[i].line_no);
-    }
-
+    int i = 0;
+    printf("\nSYMBOL   DATATYPE   TYPE   LINE NUMBER \n");
+    for(i=0; i<count; i++) {
+		printf("%s\t%s\t%s\t%d\t\n", symbol_table[i].id_name, symbol_table[i].data_type, symbol_table[i].type, symbol_table[i].line_no);
+	}
+	for(i=0;i<count;i++) {
+		free(symbol_table[i].id_name);
+		free(symbol_table[i].type);
+	}
     fclose(fp);
 
     return 0;

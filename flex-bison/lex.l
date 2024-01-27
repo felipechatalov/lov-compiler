@@ -42,6 +42,8 @@ digit [0-9]
 "include"                           { return TK_INCLUDE; } 
 "self"                              { return TK_SELF; }
 "read"                              { return TK_READ; }
+"true"                              { return TK_TRUE; }
+"false"                             { return TK_FALSE; }
 
 {alphaMin}{alphanum}*               { yylval.strval = strdup(yytext); return TK_IDENTIFIER; }
 {alphaMax}{alphanum}*               { yylval.strval = strdup(yytext); return TK_CLASS_IDENTIFIER; }
