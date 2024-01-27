@@ -47,7 +47,6 @@
 %token <strval> TK_CHAR
 
 %type <intval> expr term
-%type <strval> assignment
 
 %%
 
@@ -113,13 +112,14 @@ main: datatype TK_MAIN { printf("main\n"); add('F'); }
 return: TK_RETURN { add('K'); } expr TK_SEMICOLON { printf("return\n"); }
     ;
 
-stmt: assignment TK_SEMICOLON                                   { printf("assignment smc\n"); }
-    | TK_PRINT { add('K'); } expr TK_SEMICOLON                                { printf("print expr\n"); }
+stmt:  TK_PRINT { add('K'); } expr TK_SEMICOLON                 { printf("print expr\n"); }
+    | TK_IDENTIFIER TK_ASSIGN expr TK_SEMICOLON                 { printf("identifier assign expr smc\n"); }
+    | class_var_assn TK_SEMICOLON                               { printf("class var assn smc\n"); }
     | term TK_SEMICOLON                                         { printf("term smc\n"); }
     | declaration TK_SEMICOLON                                  { printf("declaration smc\n"); }
-    | TK_IF { add('K'); } '(' condition ')' '{' body '}' else                 { printf("if\n"); }
-    | TK_WHILE { add('K'); } '(' condition ')' '{' body '}'                   { printf("while\n"); }
-    | return                                                   { printf("return smc\n"); }
+    | TK_IF { add('K'); } '(' condition ')' '{' body '}' else   { printf("if\n"); }
+    | TK_WHILE { add('K'); } '(' condition ')' '{' body '}'     { printf("while\n"); }
+    | return                                                    { printf("return smc\n"); }
     ;
 
 else: TK_ELSE {add('K');} '{' body '}' { printf("else\n"); }
@@ -145,9 +145,7 @@ comparator_binary: TK_EQ
 comparator_unary: TK_NOT
     ;
 
-declaration: datatype TK_IDENTIFIER     
-    | datatype TK_IDENTIFIER TK_ASSIGN expr { ; }
-    | datatype TK_IDENTIFIER TK_ASSIGN TK_CLASS_IDENTIFIER '(' params_call ')' { ; }
+declaration: datatype TK_IDENTIFIER {add('V');} assignment
     ;
 
 datatype: TK_INT_TYPE {printf("int type\n"); insert_type(); }
@@ -157,9 +155,12 @@ datatype: TK_INT_TYPE {printf("int type\n"); insert_type(); }
     | TK_CLASS_IDENTIFIER {printf("class type\n"); insert_type();}
     ;
 
-assignment: TK_IDENTIFIER TK_ASSIGN expr
-    | TK_IDENTIFIER TK_ASSIGN TK_CLASS_IDENTIFIER '(' params_call ')' {;}
-    | class_variable TK_ASSIGN expr {;}
+assignment: TK_ASSIGN expr
+    | TK_ASSIGN TK_CLASS_IDENTIFIER '(' params_call ')' {;}
+    | 
+    ;
+
+class_var_assn: class_variable TK_ASSIGN expr {;}
     ;
 
 expr: term {;}
