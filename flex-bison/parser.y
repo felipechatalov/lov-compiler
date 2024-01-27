@@ -122,6 +122,10 @@ comparator_unary: TK_NOT
 declaration: datatype TK_IDENTIFIER { ; }    
     | datatype TK_IDENTIFIER TK_ASSIGN expr { ; }
     | datatype TK_IDENTIFIER TK_ASSIGN function_call { ; }
+    | TK_CLASS_IDENTIFIER TK_IDENTIFIER { ; }
+    | TK_CLASS_IDENTIFIER TK_IDENTIFIER TK_ASSIGN expr { ; }
+    | TK_CLASS_IDENTIFIER TK_IDENTIFIER TK_ASSIGN function_call { ; }
+    | TK_CLASS_IDENTIFIER TK_IDENTIFIER TK_ASSIGN TK_CLASS_IDENTIFIER '(' params_call ')' { ; }
     ;
 
 datatype: TK_INT_TYPE {printf("int type\n");}
@@ -132,6 +136,7 @@ datatype: TK_INT_TYPE {printf("int type\n");}
 
 assignment: TK_IDENTIFIER TK_ASSIGN expr {;}
     | TK_IDENTIFIER TK_ASSIGN function_call {;}
+    | TK_IDENTIFIER TK_ASSIGN TK_CLASS_IDENTIFIER '(' params_call ')' {;}
     ;
 
 expr: term {;}

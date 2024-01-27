@@ -56,5 +56,8 @@ int main(){
     function(1, 2);
     name = function(1, 2);
     string nome = otherfunction();
+    Classe c;
+    c = Classe(10);
+    Classe c = Classe(10);
     return 0;
 }
