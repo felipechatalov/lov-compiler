@@ -99,7 +99,6 @@ stmt: assignment TK_SEMICOLON                                   { printf("assign
     | TK_IF '(' condition ')' '{' body '}'                      { printf("if\n"); }
     | TK_IF '(' condition ')' '{' body '}' TK_ELSE '{' body '}' { printf("if else\n"); }
     | TK_WHILE '(' condition ')' '{' body '}'                   { printf("while\n"); }
-    | function_call TK_SEMICOLON                                { printf("function call smc\n"); }
     ;
 
 condition: expr comparator_binary expr { ; }
@@ -121,10 +120,8 @@ comparator_unary: TK_NOT
 
 declaration: datatype TK_IDENTIFIER { ; }    
     | datatype TK_IDENTIFIER TK_ASSIGN expr { ; }
-    | datatype TK_IDENTIFIER TK_ASSIGN function_call { ; }
     | TK_CLASS_IDENTIFIER TK_IDENTIFIER { ; }
     | TK_CLASS_IDENTIFIER TK_IDENTIFIER TK_ASSIGN expr { ; }
-    | TK_CLASS_IDENTIFIER TK_IDENTIFIER TK_ASSIGN function_call { ; }
     | TK_CLASS_IDENTIFIER TK_IDENTIFIER TK_ASSIGN TK_CLASS_IDENTIFIER '(' params_call ')' { ; }
     ;
 
@@ -135,7 +132,6 @@ datatype: TK_INT_TYPE {printf("int type\n");}
     ;
 
 assignment: TK_IDENTIFIER TK_ASSIGN expr {;}
-    | TK_IDENTIFIER TK_ASSIGN function_call {;}
     | TK_IDENTIFIER TK_ASSIGN TK_CLASS_IDENTIFIER '(' params_call ')' {;}
     ;
 
@@ -154,6 +150,7 @@ value: TK_INT { ; }
 
 term : value { ; }
     | TK_IDENTIFIER { ;}
+    | function_call { ; }
     ;
 
 
