@@ -11,6 +11,7 @@
     #include <stdlib.h>
     #include <string.h>
 
+    int countn = 0;
 %}
 
 %option yylineno
@@ -67,7 +68,8 @@ digit [0-9]
 
 [(){}]                              { return yytext[0]; }
 
-[ \t\n]                             { ; }
+[\n]                                { countn++; }
+[ \t]                               { ; }
 .                                   { ; }
 
 
@@ -75,9 +77,24 @@ digit [0-9]
 
 int main(int argc, char **argv)
 {
-    yyin = fopen(argv[1], "r");
+    if (argc != 2)
+    {
+        printf("Usage: %s <input_file>\n", argv[0]);
+        return 1;
+    }
+
+    FILE *fp = fopen(argv[1], "r");
+    if (fp == NULL)
+    {
+        printf("Error: could not open file %s\n", argv[1]);
+        return 1;
+    }
+
+    yyin = fp;
+
     yyparse();
-    fclose(yyin);
+
+    fclose(fp);
+
     return 0;
 }
-

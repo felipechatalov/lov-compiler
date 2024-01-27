@@ -9,6 +9,7 @@
     int yylex();
     void yyerror(const char* s);
 
+    extern int countn;
 %}
 
 
@@ -165,8 +166,6 @@ term : value { ; }
 
 %%
 
-
 void yyerror(const char* s) {
     fprintf(stderr, "%s\n", s);
 }
-
