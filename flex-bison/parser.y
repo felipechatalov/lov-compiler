@@ -34,7 +34,7 @@
 }
 
 %token TK_PRINT TK_IF TK_ELSE TK_WHILE TK_CLASS TK_AND TK_OR TK_NOT TK_INT_TYPE TK_FLOAT_TYPE TK_STRING_TYPE TK_CHAR_TYPE TK_RETURN TK_MAIN
-%token TK_CLASS_IDENTIFIER TK_INCLUDE TK_SELF
+%token TK_CLASS_IDENTIFIER TK_INCLUDE TK_SELF TK_READ
 %token TK_LT TK_LE TK_GT TK_GE TK_EQ TK_NE TK_ASSIGN 
 %token TK_PLUS TK_MINUS TK_MULT TK_DIV
 %token TK_COMMA TK_SEMICOLON TK_DOT
@@ -70,11 +70,11 @@ headers: headers header { printf("headers\n"); }
     |
     ;
 
-header: include { printf("include\n"); add('H'); }
+header: include TK_SEMICOLON { printf("include\n"); }
     | class { printf("class\n"); }
     ;
 
-include: TK_INCLUDE TK_STRING TK_SEMICOLON { ; }
+include: TK_INCLUDE TK_STRING  {  add('H'); }
     ;
 
 class: TK_CLASS TK_CLASS_IDENTIFIER '(' params ')' '{' class_body '}' { ; }
@@ -107,7 +107,7 @@ body: body stmt { printf("body\n"); }
     |
     ;
 
-main: datatype TK_MAIN { printf("main\n"); }
+main: datatype TK_MAIN { printf("main\n"); add('F'); }
     ;
 
 return: TK_RETURN expr TK_SEMICOLON { printf("return\n"); }
@@ -145,11 +145,11 @@ declaration: datatype TK_IDENTIFIER { ; }
     | datatype TK_IDENTIFIER TK_ASSIGN TK_CLASS_IDENTIFIER '(' params_call ')' { ; }
     ;
 
-datatype: TK_INT_TYPE {printf("int type\n");}
-    | TK_FLOAT_TYPE {printf("float type\n");}
-    | TK_STRING_TYPE {printf("string type\n");}
-    | TK_CHAR_TYPE {printf("char type\n");}
-    | TK_CLASS_IDENTIFIER {printf("class type\n");}
+datatype: TK_INT_TYPE {printf("int type\n"); insert_type(); }
+    | TK_FLOAT_TYPE {printf("float type\n"); insert_type();}
+    | TK_STRING_TYPE {printf("string type\n"); insert_type();}
+    | TK_CHAR_TYPE {printf("char type\n"); insert_type();}
+    | TK_CLASS_IDENTIFIER {printf("class type\n"); insert_type();}
     ;
 
 assignment: TK_IDENTIFIER TK_ASSIGN expr {;}
@@ -175,6 +175,7 @@ term : value { ; }
     | function_call { ; }
     | class_variable { ; }
     | class_function_call { ; }
+    | TK_READ '(' ')' { ; }
     ;
 
 
@@ -199,6 +200,10 @@ int main(int argc, char **argv)
 
     yyparse();
 
+    for (int i = 0; i < count; i++)
+    {
+        printf("%s\t%s\t%s\t%d\n", symbol_table[i].id_name, symbol_table[i].type, symbol_table[i].data_type, symbol_table[i].line_no);
+    }
 
     fclose(fp);
 
