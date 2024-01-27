@@ -19,7 +19,7 @@
 }
 
 %token TK_PRINT TK_IF TK_ELSE TK_WHILE TK_CLASS TK_AND TK_OR TK_NOT TK_INT_TYPE TK_FLOAT_TYPE TK_STRING_TYPE TK_CHAR_TYPE TK_RETURN TK_MAIN
-%token TK_CLASS_IDENTIFIER TK_INCLUDE
+%token TK_CLASS_IDENTIFIER TK_INCLUDE TK_SELF
 %token TK_LT TK_LE TK_GT TK_GE TK_EQ TK_NE TK_ASSIGN 
 %token TK_PLUS TK_MINUS TK_MULT TK_DIV
 %token TK_COMMA TK_SEMICOLON TK_DOT
@@ -54,7 +54,20 @@ header: include { printf("include\n"); }
 include: TK_INCLUDE TK_STRING TK_SEMICOLON { ; }
     ;
 
-class: TK_CLASS TK_CLASS_IDENTIFIER '(' params ')' '{' body '}' { ; }
+class: TK_CLASS TK_CLASS_IDENTIFIER '(' params ')' '{' class_body '}' { ; }
+
+class_body: class_body class_var_decl { ; }
+    | class_body class_func_decl { ; }
+    |
+    ;
+
+class_var_decl: datatype TK_IDENTIFIER TK_SEMICOLON { ; }
+    | datatype TK_IDENTIFIER TK_ASSIGN expr TK_SEMICOLON { ; }
+    ;
+
+class_func_decl: datatype TK_IDENTIFIER '(' TK_SELF ')' '{' body return '}' { ; }
+    | datatype TK_IDENTIFIER '(' TK_SELF TK_COMMA params ')' '{' body return '}' { ; }
+    ;
 
 params: params TK_COMMA datatype TK_IDENTIFIER { printf("params\n"); }
     | datatype TK_IDENTIFIER { printf("params\n"); }
@@ -79,8 +92,6 @@ stmt: assignment TK_SEMICOLON                                   { printf("assign
     | TK_IF '(' condition ')' '{' body '}' TK_ELSE '{' body '}' { printf("if else\n"); }
     | TK_WHILE '(' condition ')' '{' body '}'                   { printf("while\n"); }
     ;
-
-
 
 condition: expr comparator_binary expr { ; }
     | comparator_unary expr { ; }

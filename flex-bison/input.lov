@@ -2,7 +2,13 @@ include "default.lov";
 include "lib";
 
 class Classe(int valor){
-    print a;
+    int a;
+    int dois;
+
+    float funcao(self, char parametro){
+        print 0;
+        return 10;
+    }
 }
 
 char function(int a, int b){
@@ -10,7 +16,7 @@ char function(int a, int b){
     float d = b / c;
     if (a or b){
         if (a != b){
-            if (not c or a){
+            if (not c){
                 print a;
             }
             print b;

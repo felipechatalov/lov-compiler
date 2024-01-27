@@ -38,6 +38,8 @@ digit [0-9]
 "char"                              { return TK_CHAR_TYPE; }
 "return"                            { return TK_RETURN; }
 "main"                              { return TK_MAIN; }
+"include"                           { return TK_INCLUDE; } 
+"self"                              { return TK_SELF; }
 
 {alphaMin}{alphanum}*               { yylval.strval = strdup(yytext); return TK_IDENTIFIER; }
 {alphaMax}{alphanum}*               { yylval.strval = strdup(yytext); return TK_CLASS_IDENTIFIER; }
@@ -62,6 +64,8 @@ digit [0-9]
 ","                                 { return TK_COMMA; }
 ";"                                 { return TK_SEMICOLON; }
 "."                                 { return TK_DOT; }
+
+[(){}]                              { return yytext[0]; }
 
 [ \t\n]                             { ; }
 .                                   { ; }
