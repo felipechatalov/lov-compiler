@@ -43,6 +43,14 @@ function: function datatype TK_IDENTIFIER '(' params ')' '{' body return '}' { p
     |
     ;
 
+function_call: TK_IDENTIFIER '(' params_call ')' { printf("function call\n"); }
+    ;
+
+params_call: params_call TK_COMMA expr { printf("params call\n"); }
+    | expr { printf("params call\n"); }
+    |
+    ;
+
 headers: headers header { printf("headers\n"); }
     |
     ;
@@ -91,6 +99,7 @@ stmt: assignment TK_SEMICOLON                                   { printf("assign
     | TK_IF '(' condition ')' '{' body '}'                      { printf("if\n"); }
     | TK_IF '(' condition ')' '{' body '}' TK_ELSE '{' body '}' { printf("if else\n"); }
     | TK_WHILE '(' condition ')' '{' body '}'                   { printf("while\n"); }
+    | function_call TK_SEMICOLON                                { printf("function call smc\n"); }
     ;
 
 condition: expr comparator_binary expr { ; }
@@ -112,6 +121,7 @@ comparator_unary: TK_NOT
 
 declaration: datatype TK_IDENTIFIER { ; }    
     | datatype TK_IDENTIFIER TK_ASSIGN expr { ; }
+    | datatype TK_IDENTIFIER TK_ASSIGN function_call { ; }
     ;
 
 datatype: TK_INT_TYPE {printf("int type\n");}
@@ -121,6 +131,7 @@ datatype: TK_INT_TYPE {printf("int type\n");}
     ;
 
 assignment: TK_IDENTIFIER TK_ASSIGN expr {;}
+    | TK_IDENTIFIER TK_ASSIGN function_call {;}
     ;
 
 expr: term {;}

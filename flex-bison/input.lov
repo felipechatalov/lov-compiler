@@ -53,5 +53,8 @@ int main(){
             a = a + 1;
             }
         }
+    function(1, 2);
+    name = function(1, 2);
+    string nome = otherfunction();
     return 0;
 }
