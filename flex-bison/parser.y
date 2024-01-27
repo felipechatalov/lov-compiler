@@ -77,6 +77,12 @@ class_func_decl: datatype TK_IDENTIFIER '(' TK_SELF ')' '{' body return '}' { ; 
     | datatype TK_IDENTIFIER '(' TK_SELF TK_COMMA params ')' '{' body return '}' { ; }
     ;
 
+class_variable: TK_IDENTIFIER TK_DOT TK_IDENTIFIER { printf("class variable\n"); }
+    ;
+
+class_function_call: TK_IDENTIFIER TK_DOT TK_IDENTIFIER '(' params_call ')' { printf("class function call\n"); }
+    ;
+
 params: params TK_COMMA datatype TK_IDENTIFIER { printf("params\n"); }
     | datatype TK_IDENTIFIER { printf("params\n"); }
     |
@@ -133,6 +139,7 @@ datatype: TK_INT_TYPE {printf("int type\n");}
 
 assignment: TK_IDENTIFIER TK_ASSIGN expr {;}
     | TK_IDENTIFIER TK_ASSIGN TK_CLASS_IDENTIFIER '(' params_call ')' {;}
+    | class_variable TK_ASSIGN expr {;}
     ;
 
 expr: term {;}
@@ -151,6 +158,8 @@ value: TK_INT { ; }
 term : value { ; }
     | TK_IDENTIFIER { ;}
     | function_call { ; }
+    | class_variable { ; }
+    | class_function_call { ; }
     ;
 
 

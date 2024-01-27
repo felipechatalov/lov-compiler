@@ -60,5 +60,7 @@ int main(){
     c = Classe(10);
     Classe c = Classe(10);
     a = 10 + funcao(1);
+    c.funcao(1);
+    c.valor = 10;
     return 0;
 }
