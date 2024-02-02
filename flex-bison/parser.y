@@ -50,10 +50,31 @@
 
 %%
 
-program: headers function main '(' params ')' '{' body return '}' { printf("program\n"); }
+program: headers functions main '(' params ')' '{' body return '}' { printf("program\n"); }
+    | class { printf("class-program\n"); }
     ;
 
-function: function datatype TK_IDENTIFIER '(' params ')' '{' body return '}' { printf("function\n"); }
+class: TK_CLASS TK_CLASS_IDENTIFIER '(' params ')' '{' class_body '}' { ; }
+    ;
+
+class_body: class_body class_var_decl { ; }
+    | class_body class_func_decl { ; }
+    |
+    ;
+
+class_var_decl: datatype TK_IDENTIFIER TK_SEMICOLON { ; }
+    | datatype TK_IDENTIFIER TK_ASSIGN expr TK_SEMICOLON { ; }
+    ;
+
+class_func_decl: datatype TK_IDENTIFIER '(' TK_SELF ')' '{' body return '}' { ; }
+    | datatype TK_IDENTIFIER '(' TK_SELF TK_COMMA params ')' '{' body return '}' { ; }
+    ;
+
+
+function: datatype TK_IDENTIFIER { add('F'); } '(' params ')' '{' body return '}' { printf("function\n"); }
+    ;
+
+functions: functions function { printf("functions\n"); }
     |
     ;
 
@@ -70,26 +91,11 @@ headers: headers header { printf("headers\n"); }
     ;
 
 header: include TK_SEMICOLON { printf("include\n"); }
-    | class { printf("class\n"); }
     ;
 
 include: TK_INCLUDE TK_STRING  {  add('H'); }
     ;
 
-class: TK_CLASS TK_CLASS_IDENTIFIER '(' params ')' '{' class_body '}' { ; }
-
-class_body: class_body class_var_decl { ; }
-    | class_body class_func_decl { ; }
-    |
-    ;
-
-class_var_decl: datatype TK_IDENTIFIER TK_SEMICOLON { ; }
-    | datatype TK_IDENTIFIER TK_ASSIGN expr TK_SEMICOLON { ; }
-    ;
-
-class_func_decl: datatype TK_IDENTIFIER '(' TK_SELF ')' '{' body return '}' { ; }
-    | datatype TK_IDENTIFIER '(' TK_SELF TK_COMMA params ')' '{' body return '}' { ; }
-    ;
 
 class_variable: TK_IDENTIFIER TK_DOT TK_IDENTIFIER { printf("class variable\n"); }
     ;
@@ -189,22 +195,28 @@ term : value { ; }
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
+    if (argc < 2)
     {
-        printf("Usage: %s <input_file>\n", argv[0]);
+        printf("Usage: %s <input_file> <input_file2> ... \n", argv[0]);
         return 1;
     }
 
-    FILE *fp = fopen(argv[1], "r");
-    if (fp == NULL)
+    for (int i = 1; i < argc; i++)
     {
-        printf("Error: could not open file %s\n", argv[1]);
-        return 1;
+        FILE *fp = fopen(argv[i], "r");
+        if (fp == NULL)
+        {
+            printf("Error: could not open file %s\n", argv[i]);
+            return 1;
+        }
+
+        yyin = fp;
+
+        yyparse();
+
+        fclose(fp);
     }
 
-    yyin = fp;
-
-    yyparse();
 
     int i = 0;
     printf("\nSYMBOL   DATATYPE   TYPE   LINE NUMBER \n");
@@ -215,7 +227,6 @@ int main(int argc, char **argv)
 		free(symbol_table[i].id_name);
 		free(symbol_table[i].type);
 	}
-    fclose(fp);
 
     return 0;
 }

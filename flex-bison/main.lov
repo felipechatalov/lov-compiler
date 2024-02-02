@@ -1,52 +1,30 @@
-include "input.lov";
+include "Cliente.lov";
+include "Banco.lov";
 
-class Banco(){
-    int id;
-    int dinheiro;
-    string nome;
-
-    int transferir(self, int valor, Banco destino){
-        dinheiro = dinheiro - valor;
-        if (dinheiro < 0){
-            return 0;
-        }
-        destino.dinheiro = destinodinheiro + valor;
-        return 1;
-    }
-}
-
-class Cliente(string nome, char banco){
-    string nome;
-    char banco;
-    int dinheiro;
-
-    int sacar(self, int valor){
-        if (valor > dinheiro){
-            return 0;
-        }
-        dinheiro = dinheiro - valor;
-        return 1;
-    }
-
-    int depositar(self, int valor){
-        dinheiro = dinheiro + valor;
-        return 1;
-    }
-
-    int transferir(self, int valor, Cliente destino){
-        if (valor > dinheiro){
-            return 0;
-        }
-        dinheiro = dinheiro - valor;
-        destino.dinheiro = destinodinheiro + valor;
-        return 1;
-    }
+char printaalgo(){
+    print "algo";
+    return 'a';
 }
 
 int main(){
     Banco b = Banco(1, 1000, "Banco1");
     Cliente c = Cliente("Cliente1", '1');
+    int variavel;
 
+    int total = read();
+    while (total > 0){
+        int valor = read();
+        if (c.sacar(valor) == 0){
+            print "Saldo insuficiente";
+        }
+        else{
+            b.transferir(valor, c);
+        }
+        total = total - 1;
+    }
+    while (false){
+        print a;
+    }
     print b.dinheiro;
     c.sacar(100);
     print c.dinheiro;

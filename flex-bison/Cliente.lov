@@ -1,0 +1,27 @@
+class Cliente(string nome, char banco){
+    string nome;
+    char banco;
+    int dinheiro;
+
+    int sacar(self, int valor){
+        if (valor > dinheiro){
+            return 0;
+        }
+        dinheiro = dinheiro - valor;
+        return 1;
+    }
+
+    int depositar(self, int valor){
+        dinheiro = dinheiro + valor;
+        return 1;
+    }
+
+    int transferir(self, int valor, Cliente destino){
+        if (valor > dinheiro){
+            return 0;
+        }
+        dinheiro = dinheiro - valor;
+        destino.dinheiro = destinodinheiro + valor;
+        return 1;
+    }
+}

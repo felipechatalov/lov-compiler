@@ -1,0 +1,14 @@
+class Banco(){
+    int id;
+    int dinheiro;
+    string nome;
+
+    int transferir(self, int valor, Banco destino){
+        dinheiro = dinheiro - valor;
+        if (dinheiro < 0){
+            return 0;
+        }
+        destino.dinheiro = destinodinheiro + valor;
+        return 1;
+    }
+}
