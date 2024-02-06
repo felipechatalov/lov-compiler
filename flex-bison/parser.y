@@ -9,6 +9,7 @@
     void yyerror(const char* s);
 
     extern int countn;
+    extern char str_holder[100];
     extern char* yytext;
     extern FILE* yyin;
     void add(char);
@@ -58,24 +59,18 @@
 %%
 
 program: headers functions main '(' params ')' '{' body return '}' { printf("program\n"); }
-    | class { printf("class-program\n"); }
+    | headers class '(' params ')' '{' class_body '}' { printf("class-program\n"); }
     ;
 
-class: TK_CLASS TK_CLASS_IDENTIFIER { add('L'); } '(' params ')' '{' class_body '}' { ; }
+class: TK_CLASS TK_CLASS_IDENTIFIER { add('L'); printf("class\n"); }
     ;
 
-class_body: class_body class_stmt { printf("class body\n"); }
+class_body: class_stmt class_body  { printf("class body\n"); }
     |
     ;
 
-class_stmt: class_var_decl TK_SEMICOLON { ; }
-    | class_func_decl
-    ;
-
-class_var_decl: datatype TK_IDENTIFIER {add('V');} assignment { ; }
-    ;
-
-class_func_decl: datatype TK_IDENTIFIER { add('F'); } '(' class_params ')' '{' body return '}' { ; }
+class_stmt: datatype TK_IDENTIFIER {add('V');} assignment TK_SEMICOLON { printf("class var decl\n"); }
+    | datatype TK_IDENTIFIER { add('F'); } '(' class_params ')' '{' body return '}' { printf("class func decl\n"); }
     ;
 
 class_params: TK_SELF { ; }
@@ -269,38 +264,38 @@ void add(char c) {
     q=search(yytext);
     if(!q) {
         if(c == 'H') {
-            symbol_table[count].id_name=strdup(yytext);        
+            symbol_table[count].id_name=strdup(yylval.nd_obj.name);        
             symbol_table[count].data_type=strdup(type);     
             symbol_table[count].line_no=countn;    
             symbol_table[count].type=strdup("Header");
             count++;  
         }  
         else if(c == 'K') {
-            symbol_table[count].id_name=strdup(yytext);
+            symbol_table[count].id_name=strdup(yylval.nd_obj.name);
             symbol_table[count].data_type=strdup("N/A");
             symbol_table[count].line_no=countn;
             symbol_table[count].type=strdup("Keyword\t");   
             count++;  
         }  else if(c == 'V') {
-            symbol_table[count].id_name=strdup(yylval.strval);
+            symbol_table[count].id_name=strdup(str_holder);
             symbol_table[count].data_type=strdup(type);
             symbol_table[count].line_no=countn;
             symbol_table[count].type=strdup("Variable");   
             count++;  
         }  else if(c == 'C') {
-            symbol_table[count].id_name=strdup(yytext);
+            symbol_table[count].id_name=strdup(yylval.nd_obj.name);
             symbol_table[count].data_type=strdup("CONST");
             symbol_table[count].line_no=countn;
             symbol_table[count].type=strdup("Constant");   
             count++;  
         }  else if(c == 'F') {
-            symbol_table[count].id_name=strdup(yylval.strval);
+            symbol_table[count].id_name=strdup(str_holder);
             symbol_table[count].data_type=strdup(type);
             symbol_table[count].line_no=countn;
             symbol_table[count].type=strdup("Function");   
             count++;  
         }  else if(c == 'L') {
-            symbol_table[count].id_name=strdup(yylval.strval);
+            symbol_table[count].id_name=strdup(yylval.nd_obj.name);
             symbol_table[count].data_type=strdup(type);
             symbol_table[count].line_no=countn;
             symbol_table[count].type=strdup("Class");   

@@ -10,8 +10,8 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
-
     int countn = 1;
+    char str_holder[100];
 %}
 
 %option yylineno
@@ -25,51 +25,51 @@ digit [0-9]
 
 %%
 
-"print"                             { return TK_PRINT; }
-"if"                                { return TK_IF; }
-"else"                              { return TK_ELSE; }
-"while"                             { return TK_WHILE; }
-"class"                             { return TK_CLASS; }
-"and"                               { return TK_AND; }
-"or"                                { return TK_OR; }
-"not"                               { return TK_NOT; }
-"int"                               { return TK_INT_TYPE; }
-"float"                             { return TK_FLOAT_TYPE; }
-"string"                            { return TK_STRING_TYPE; }
-"char"                              { return TK_CHAR_TYPE; }
-"return"                            { return TK_RETURN; }
-"main"                              { return TK_MAIN; }
-"include"                           { return TK_INCLUDE; } 
-"self"                              { return TK_SELF; }
-"read"                              { return TK_READ; }
-"true"                              { return TK_TRUE; }
-"false"                             { return TK_FALSE; }
+"print"                             { strcpy(yylval.nd_obj.name, yytext); return TK_PRINT; }
+"if"                                { strcpy(yylval.nd_obj.name, yytext); return TK_IF; }
+"else"                              { strcpy(yylval.nd_obj.name, yytext); return TK_ELSE; }
+"while"                             { strcpy(yylval.nd_obj.name, yytext); return TK_WHILE; }
+"class"                             { strcpy(yylval.nd_obj.name, yytext); return TK_CLASS; }
+"and"                               { strcpy(yylval.nd_obj.name, yytext); return TK_AND; }
+"or"                                { strcpy(yylval.nd_obj.name, yytext); return TK_OR; }
+"not"                               { strcpy(yylval.nd_obj.name, yytext); return TK_NOT; }
+"int"                               { strcpy(yylval.nd_obj.name, yytext); return TK_INT_TYPE; }
+"float"                             { strcpy(yylval.nd_obj.name, yytext); return TK_FLOAT_TYPE; }
+"string"                            { strcpy(yylval.nd_obj.name, yytext); return TK_STRING_TYPE; }
+"char"                              { strcpy(yylval.nd_obj.name, yytext); return TK_CHAR_TYPE; }
+"return"                            { strcpy(yylval.nd_obj.name, yytext); return TK_RETURN; }
+"main"                              { strcpy(yylval.nd_obj.name, yytext); return TK_MAIN; }
+"include"                           { strcpy(yylval.nd_obj.name, yytext); return TK_INCLUDE; } 
+"self"                              { strcpy(yylval.nd_obj.name, yytext); return TK_SELF; }
+"read"                              { strcpy(yylval.nd_obj.name, yytext); return TK_READ; }
+"true"                              { strcpy(yylval.nd_obj.name, yytext); return TK_TRUE; }
+"false"                             { strcpy(yylval.nd_obj.name, yytext); return TK_FALSE; }
 
-{alphaMin}{alphanum}*               { yylval.strval = strdup(yytext); return TK_IDENTIFIER; }
-{alphaMax}{alphanum}*               { yylval.strval = strdup(yytext); return TK_CLASS_IDENTIFIER; }
-[-]?{digit}+                        { yylval.intval = atoi(yytext); return TK_INT; }
-[-]?{digit}+\.{digit}{1,4}          { yylval.floatval = atof(yytext); return TK_FLOAT; }
-["].*["]                            { yylval.strval = strdup(yytext); return TK_STRING; }
-['].[']                             { yylval.strval = strdup(yytext); return TK_CHAR; }
+{alphaMin}{alphanum}*               { strcpy(yylval.nd_obj.name, yytext); strcpy(str_holder, yytext); return TK_IDENTIFIER; }
+{alphaMax}{alphanum}*               { strcpy(yylval.nd_obj.name, yytext); return TK_CLASS_IDENTIFIER; }
+[-]?{digit}+                        { strcpy(yylval.nd_obj.name, yytext); return TK_INT; }
+[-]?{digit}+\.{digit}{1,4}          { strcpy(yylval.nd_obj.name, yytext); return TK_FLOAT; }
+["].*["]                            { strcpy(yylval.nd_obj.name, yytext); return TK_STRING; }
+['].[']                             { strcpy(yylval.nd_obj.name, yytext); return TK_CHAR; }
 
-"<"                                 { return TK_LT; }
-"<="                                { return TK_LE; }
-">"                                 { return TK_GT; }
-">="                                { return TK_GE; }
-"=="                                { return TK_EQ; }
-"!="                                { return TK_NE; }
-"="                                 { return TK_ASSIGN; }
+"<"                                 { strcpy(yylval.nd_obj.name, yytext); return TK_LT; }
+"<="                                { strcpy(yylval.nd_obj.name, yytext); return TK_LE; }
+">"                                 { strcpy(yylval.nd_obj.name, yytext); return TK_GT; }
+">="                                { strcpy(yylval.nd_obj.name, yytext); return TK_GE; }
+"=="                                { strcpy(yylval.nd_obj.name, yytext); return TK_EQ; }
+"!="                                { strcpy(yylval.nd_obj.name, yytext); return TK_NE; }
+"="                                 { strcpy(yylval.nd_obj.name, yytext); return TK_ASSIGN; }
 
-"+"                                 { return TK_PLUS; }
-"-"                                 { return TK_MINUS; }
-"*"                                 { return TK_MULT; }
-"/"                                 { return TK_DIV; }
+"+"                                 { strcpy(yylval.nd_obj.name, yytext); return TK_PLUS; }
+"-"                                 { strcpy(yylval.nd_obj.name, yytext); return TK_MINUS; }
+"*"                                 { strcpy(yylval.nd_obj.name, yytext); return TK_MULT; }
+"/"                                 { strcpy(yylval.nd_obj.name, yytext); return TK_DIV; }
 
-","                                 { return TK_COMMA; }
-";"                                 { return TK_SEMICOLON; }
-"."                                 { return TK_DOT; }
+","                                 { strcpy(yylval.nd_obj.name, yytext); return TK_COMMA; }
+";"                                 { strcpy(yylval.nd_obj.name, yytext); return TK_SEMICOLON; }
+"."                                 { strcpy(yylval.nd_obj.name, yytext); return TK_DOT; }
 
-[(){}]                              { return yytext[0]; }
+[(){}]                              { strcpy(yylval.nd_obj.name, yytext); return yytext[0]; }
 
 [\n]                                { countn++; }
 [ \t]                               { ; }
