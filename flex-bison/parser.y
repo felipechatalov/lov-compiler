@@ -86,13 +86,13 @@ class_params: TK_SELF { ; }
     ;
 
 function: datatype TK_IDENTIFIER { add('F'); } '(' params ')' '{' body return '}' { printf("function\n"); 
-    $$.nd = mknode($1.nd, $8.nd, "function");}
+    $$.nd = mknode($8.nd, $9.nd, $2.name);}
     ;
 
 functions: functions function { printf("functions\n"); 
-    $$.nd = mknode($1.nd, $2.nd, "functions");
+    $$.nd = mknode($2.nd, $1.nd, "functions");
     }
-    |
+    | { $$.nd = NULL;}
     ;
 
 function_call: TK_IDENTIFIER '(' params_call ')' { printf("function call\n"); }
