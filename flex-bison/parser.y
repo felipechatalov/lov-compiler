@@ -123,24 +123,26 @@ params: params TK_COMMA datatype TK_IDENTIFIER { printf("params\n"); }
     |
     ;
 
-body: body stmt { printf("body\n"); }
-    |
+body: body stmt { printf("body\n"); 
+    $$.nd = mknode($1.nd, $2.nd, "body");
+    }
+    | { $$.nd = NULL;}
     ;
 
 main: datatype TK_MAIN { printf("main\n"); add('F'); }
     ;
 
-return: TK_RETURN { add('K'); } expr TK_SEMICOLON { printf("return\n"); }
+return: TK_RETURN { add('K'); } expr TK_SEMICOLON { printf("return\n"); $$.nd = mknode(NULL, NULL, "return");}
     ;
 
-stmt:  TK_PRINT { add('K'); } expr TK_SEMICOLON                 { printf("print expr\n"); }
-    | TK_IDENTIFIER TK_ASSIGN expr TK_SEMICOLON                 { printf("identifier assign expr smc\n"); }
+stmt:  TK_PRINT { add('K'); } expr TK_SEMICOLON                 { printf("print expr\n"); $$.nd = mknode(NULL, NULL, "print"); }
+    | TK_IDENTIFIER TK_ASSIGN expr TK_SEMICOLON                 { printf("identifier assign expr smc\n"); $$.nd = mknode($1.nd, $3.nd, "assign");}
     | class_var_assn TK_SEMICOLON                               { printf("class var assn smc\n"); }
     | term TK_SEMICOLON                                         { printf("term smc\n"); }
     | declaration TK_SEMICOLON                                  { printf("declaration smc\n"); }
     | TK_IF { add('K'); } '(' condition ')' '{' body '}' else   { printf("if\n"); }
     | TK_WHILE { add('K'); } '(' condition ')' '{' body '}'     { printf("while\n"); }
-    | return                                                    { printf("return smc\n"); }
+    | return                                                    { printf("return smc\n");}
     ;
 
 else: TK_ELSE {add('K');} '{' body '}' { printf("else\n"); }
