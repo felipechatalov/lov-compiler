@@ -34,6 +34,7 @@
 
     struct node* head;
     struct node* mknode(struct node* left, struct node* right, char* token);
+    void printInorder(struct node *tree);
 %}
 
 
@@ -54,11 +55,18 @@
 %token <nd_obj> TK_COMMA TK_SEMICOLON TK_DOT
 %token <nd_obj> TK_INT TK_IDENTIFIER TK_FLOAT TK_STRING TK_CHAR
 
-%type <nd_obj> headers main body return datatype expr stmt assignment value program comparator_binary comparator_unary
+%type <nd_obj> headers main body return datatype expr stmt assignment value program comparator_binary comparator_unary functions function include
 
 %%
 
-program: headers functions main '(' params ')' '{' body return '}' { printf("program\n"); }
+program: headers functions main '(' params ')' '{' body return '}' { printf("program\n"); 
+    $3.nd = mknode($8.nd, $9.nd, "main");
+    struct node* new = (struct node*)malloc(sizeof(struct node));
+    new->left = $2.nd;
+    new->right = $3.nd;
+    new->token = "functions";
+    $$.nd = mknode($1.nd, new, "program");
+    head = $$.nd;}
     | headers class '(' params ')' '{' class_body '}' { printf("class-program\n"); }
     ;
 
@@ -69,7 +77,7 @@ class_body: class_stmt class_body  { printf("class body\n"); }
     |
     ;
 
-class_stmt: datatype TK_IDENTIFIER {add('V');} assignment TK_SEMICOLON { printf("class var decl\n"); }
+class_stmt: datatype TK_IDENTIFIER {add('V'); } assignment TK_SEMICOLON { printf("class var decl\n"); }
     | datatype TK_IDENTIFIER { add('F'); } '(' class_params ')' '{' body return '}' { printf("class func decl\n"); }
     ;
 
@@ -77,10 +85,13 @@ class_params: TK_SELF { ; }
     | TK_SELF TK_COMMA params { ; }
     ;
 
-function: datatype TK_IDENTIFIER { add('F'); } '(' params ')' '{' body return '}' { printf("function\n"); }
+function: datatype TK_IDENTIFIER { add('F'); } '(' params ')' '{' body return '}' { printf("function\n"); 
+    $$.nd = mknode($1.nd, $8.nd, "function");}
     ;
 
-functions: functions function { printf("functions\n"); }
+functions: functions function { printf("functions\n"); 
+    $$.nd = mknode($1.nd, $2.nd, "functions");
+    }
     |
     ;
 
@@ -92,16 +103,14 @@ params_call: params_call TK_COMMA expr { printf("params call\n"); }
     |
     ;
 
-headers: headers header { printf("headers\n"); }
-    |
+headers: include TK_SEMICOLON headers  { printf("headers\n"); 
+    $$.nd = mknode($1.nd, $3.nd, "headers");
+    }
+    | {$$.nd = NULL;}
     ;
 
-header: include TK_SEMICOLON { printf("include\n"); }
+include: TK_INCLUDE TK_STRING { add('H'); $$.nd = mknode(NULL, NULL, $2.name); }
     ;
-
-include: TK_INCLUDE TK_STRING  {  add('H'); }
-    ;
-
 
 class_variable: TK_IDENTIFIER TK_DOT TK_IDENTIFIER { printf("class variable\n"); }
     ;
@@ -238,6 +247,10 @@ int main(int argc, char **argv)
 		free(symbol_table[i].type);
 	}
 
+    printf("\n");
+    printInorder(head);
+    printf("\n");
+    
     return 0;
 }
 
@@ -311,4 +324,14 @@ struct node* mknode(struct node* left, struct node* right, char* token){
     newnode->right = right;
     newnode->token = newstr;
     return newnode;
+}
+void printInorder(struct node *tree) {
+    int i; 
+    if (tree->left) {
+        printInorder(tree->left); 
+    } 
+    printf("%s, ", tree->token); 
+    if (tree->right) {  
+        printInorder(tree->right); 
+    }
 }
