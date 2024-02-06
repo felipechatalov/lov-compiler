@@ -24,6 +24,20 @@
     int count = 0;
     int q;
     char type[10];
+
+    typedef struct node{
+        struct node* left;
+        struct node* right;
+        char *token;
+    }node;
+
+    struct var_name{
+        char name[100];
+        node* nd;
+    
+    }nd_obj;
+    node* head;
+    node* mknode(node* left, node* right, char* token);
 %}
 
 
@@ -33,20 +47,14 @@
     char* strval;
 }
 
-%token TK_PRINT TK_IF TK_ELSE TK_WHILE TK_CLASS TK_AND TK_OR TK_NOT TK_INT_TYPE TK_FLOAT_TYPE TK_STRING_TYPE TK_CHAR_TYPE TK_RETURN TK_MAIN
-%token TK_CLASS_IDENTIFIER TK_INCLUDE TK_SELF TK_READ TK_TRUE TK_FALSE
-%token TK_LT TK_LE TK_GT TK_GE TK_EQ TK_NE TK_ASSIGN 
-%token TK_PLUS TK_MINUS TK_MULT TK_DIV
-%token TK_COMMA TK_SEMICOLON TK_DOT
+%token <nd_obj> TK_PRINT TK_IF TK_ELSE TK_WHILE TK_CLASS TK_AND TK_OR TK_NOT TK_INT_TYPE TK_FLOAT_TYPE TK_STRING_TYPE TK_CHAR_TYPE TK_RETURN TK_MAIN
+%token <nd_obj> TK_CLASS_IDENTIFIER TK_INCLUDE TK_SELF TK_READ TK_TRUE TK_FALSE
+%token <nd_obj> TK_LT TK_LE TK_GT TK_GE TK_EQ TK_NE TK_ASSIGN 
+%token <nd_obj> TK_PLUS TK_MINUS TK_MULT TK_DIV
+%token <nd_obj> TK_COMMA TK_SEMICOLON TK_DOT
+%token <nd_obj> TK_INT TK_IDENTIFIER TK_FLOAT TK_STRING TK_CHAR
 
-
-%token <intval> TK_INT
-%token <strval> TK_IDENTIFIER
-%token <floatval> TK_FLOAT
-%token <strval> TK_STRING
-%token <strval> TK_CHAR
-
-%type <intval> expr term
+%type <nd_obj> headers main body return datatype expr stmt assignment value program comparator_binary comparator_unary
 
 %%
 
@@ -54,22 +62,26 @@ program: headers functions main '(' params ')' '{' body return '}' { printf("pro
     | class { printf("class-program\n"); }
     ;
 
-class: TK_CLASS TK_CLASS_IDENTIFIER '(' params ')' '{' class_body '}' { ; }
+class: TK_CLASS TK_CLASS_IDENTIFIER { add('L'); } '(' params ')' '{' class_body '}' { ; }
     ;
 
-class_body: class_body class_var_decl { ; }
-    | class_body class_func_decl { ; }
+class_body: class_body class_stmt { printf("class body\n"); }
     |
     ;
 
-class_var_decl: datatype TK_IDENTIFIER TK_SEMICOLON { ; }
-    | datatype TK_IDENTIFIER TK_ASSIGN expr TK_SEMICOLON { ; }
+class_stmt: class_var_decl TK_SEMICOLON { ; }
+    | class_func_decl
     ;
 
-class_func_decl: datatype TK_IDENTIFIER '(' TK_SELF ')' '{' body return '}' { ; }
-    | datatype TK_IDENTIFIER '(' TK_SELF TK_COMMA params ')' '{' body return '}' { ; }
+class_var_decl: datatype TK_IDENTIFIER {add('V');} assignment { ; }
     ;
 
+class_func_decl: datatype TK_IDENTIFIER { add('F'); } '(' class_params ')' '{' body return '}' { ; }
+    ;
+
+class_params: TK_SELF { ; }
+    | TK_SELF TK_COMMA params { ; }
+    ;
 
 function: datatype TK_IDENTIFIER { add('F'); } '(' params ')' '{' body return '}' { printf("function\n"); }
     ;
@@ -170,10 +182,13 @@ class_var_assn: class_variable TK_ASSIGN expr {;}
     ;
 
 expr: term {;}
-    | expr TK_PLUS term { ; }
-    | expr TK_MINUS term { ; }
-    | expr TK_MULT term { ; }
-    | expr TK_DIV term { ; }
+    | expr arithmetic term { ; }
+    ;
+
+arithmetic: TK_PLUS { ; }
+    | TK_MINUS { ; }
+    | TK_MULT { ; }
+    | TK_DIV { ; }
     ;
 
 value: TK_INT { add('C'); }
@@ -203,6 +218,7 @@ int main(int argc, char **argv)
 
     for (int i = 1; i < argc; i++)
     {
+        countn = 1;
         FILE *fp = fopen(argv[i], "r");
         if (fp == NULL)
         {
@@ -267,7 +283,7 @@ void add(char c) {
             symbol_table[count].type=strdup("Keyword\t");   
             count++;  
         }  else if(c == 'V') {
-            symbol_table[count].id_name=strdup(yytext);
+            symbol_table[count].id_name=strdup(yylval.strval);
             symbol_table[count].data_type=strdup(type);
             symbol_table[count].line_no=countn;
             symbol_table[count].type=strdup("Variable");   
@@ -279,11 +295,26 @@ void add(char c) {
             symbol_table[count].type=strdup("Constant");   
             count++;  
         }  else if(c == 'F') {
-            symbol_table[count].id_name=strdup(yytext);
+            symbol_table[count].id_name=strdup(yylval.strval);
             symbol_table[count].data_type=strdup(type);
             symbol_table[count].line_no=countn;
             symbol_table[count].type=strdup("Function");   
             count++;  
+        }  else if(c == 'L') {
+            symbol_table[count].id_name=strdup(yylval.strval);
+            symbol_table[count].data_type=strdup(type);
+            symbol_table[count].line_no=countn;
+            symbol_table[count].type=strdup("Class");   
+            count++;  
         }
     }
+}
+node* mknode(node* left, node* right, char* token){
+    node* newnode = (node*)malloc(sizeof(node));
+    char* newstr =  (char*)malloc(strlen(token)+1);
+    strcpy(newstr, token);
+    newnode->left = left;
+    newnode->right = right;
+    newnode->token = newstr;
+    return newnode;
 }
