@@ -25,19 +25,14 @@
     int q;
     char type[10];
 
-    typedef struct node{
+    struct node{
         struct node* left;
         struct node* right;
         char *token;
     }node;
 
-    struct var_name{
-        char name[100];
-        node* nd;
-    
-    }nd_obj;
-    node* head;
-    node* mknode(node* left, node* right, char* token);
+    struct node* head;
+    struct node* mknode(struct node* left, struct node* right, char* token);
 %}
 
 
@@ -45,6 +40,10 @@
     int intval; 
     float floatval;
     char* strval;
+    struct var_name {
+        char name[100];
+        struct node* nd;
+    }nd_obj;
 }
 
 %token <nd_obj> TK_PRINT TK_IF TK_ELSE TK_WHILE TK_CLASS TK_AND TK_OR TK_NOT TK_INT_TYPE TK_FLOAT_TYPE TK_STRING_TYPE TK_CHAR_TYPE TK_RETURN TK_MAIN
@@ -309,8 +308,8 @@ void add(char c) {
         }
     }
 }
-node* mknode(node* left, node* right, char* token){
-    node* newnode = (node*)malloc(sizeof(node));
+struct node* mknode(struct node* left, struct node* right, char* token){
+    struct node* newnode = (struct node*)malloc(sizeof(struct node));
     char* newstr =  (char*)malloc(strlen(token)+1);
     strcpy(newstr, token);
     newnode->left = left;
