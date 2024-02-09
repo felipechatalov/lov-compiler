@@ -1,5 +1,5 @@
 include "Cliente.lov";
-include "Banco.lov";
+include "Banco.lov"; 
 
 char printaalgo(){
     print "algo";
@@ -10,6 +10,8 @@ int main(){
     Banco b = Banco(1, 1000, "Banco1");
     Cliente c = Cliente("Cliente1", '1');
     int variavel;
+    int[10] array;
+
 
     int total = read();
     while (total > 0){

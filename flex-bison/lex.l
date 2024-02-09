@@ -70,7 +70,8 @@ digit [0-9]
 "."                                 { strcpy(yylval.nd_obj.name, yytext); return TK_DOT; }
 
 [(){}]                              { strcpy(yylval.nd_obj.name, yytext); return yytext[0]; }
-
+"["                                 { strcpy(yylval.nd_obj.name, yytext); return yytext[0]; }
+"]"                                 { strcpy(yylval.nd_obj.name, yytext); return yytext[0]; }
 [\n]                                { countn++; }
 [ \t]                               { ; }
 .                                   { ; }
