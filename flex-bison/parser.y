@@ -33,8 +33,9 @@
     }node;
 
     struct node* head;
-    struct node* mknode(struct node* left, struct node* right, char* token);
-    void printInorder(struct node *tree);
+    struct node* mknode(struct node*, struct node*, char*);
+    void printInorder(struct node*);
+    void printPreorder(struct node*);
 %}
 
 
@@ -55,38 +56,46 @@
 %token <nd_obj> TK_COMMA TK_SEMICOLON TK_DOT
 %token <nd_obj> TK_INT TK_IDENTIFIER TK_FLOAT TK_STRING TK_CHAR
 
-%type <nd_obj> headers main body return datatype expr stmt assignment value program comparator_binary comparator_unary functions function include
+%type <nd_obj> headers main body return datatype expr stmt assignment value program comparator_binary comparator_unary functions function include params class_params class_body declaration
+
+%left TK_PLUS TK_MINUS
+%left TK_MULT TK_DIV
+%right TK_ASSIGN
+%nonassoc TK_LT TK_LE TK_GT TK_GE TK_EQ TK_NE TK_AND TK_OR TK_NOT
 
 %%
 
-program: headers functions main '(' params ')' '{' body return '}' { printf("program\n"); 
-    $3.nd = mknode($8.nd, $9.nd, "main");
+program: headers functions main '(' params ')' '{' body '}' { printf("program\n"); 
+    $3.nd = mknode($5.nd, $8.nd, "main");
     struct node* new = (struct node*)malloc(sizeof(struct node));
     new->left = $2.nd;
     new->right = $3.nd;
     new->token = "functions";
     $$.nd = mknode($1.nd, new, "program");
     head = $$.nd;}
-    | headers class '(' params ')' '{' class_body '}' { printf("class-program\n"); }
+    
+    | class '(' params ')' '{' class_body '}' { printf("class-program\n"); 
+    $$.nd = mknode($3.nd, $6.nd, "class");
+    head = $$.nd;}
     ;
 
 class: TK_CLASS TK_CLASS_IDENTIFIER { add('L'); printf("class\n"); }
     ;
 
-class_body: class_stmt class_body  { printf("class body\n"); }
+class_body: class_stmt class_body  { printf("class body\n"); $$.nd = mknode(NULL, NULL, "class body");}
     |
     ;
 
 class_stmt: datatype TK_IDENTIFIER {add('V'); } assignment TK_SEMICOLON { printf("class var decl\n"); }
-    | datatype TK_IDENTIFIER { add('F'); } '(' class_params ')' '{' body return '}' { printf("class func decl\n"); }
+    | datatype TK_IDENTIFIER { add('F'); } '(' class_params ')' '{' body '}' { printf("class func decl\n"); }
     ;
 
 class_params: TK_SELF { ; }
     | TK_SELF TK_COMMA params { ; }
     ;
 
-function: datatype TK_IDENTIFIER { add('F'); } '(' params ')' '{' body return '}' { printf("function\n"); 
-    $$.nd = mknode($8.nd, $9.nd, $2.name);}
+function: datatype TK_IDENTIFIER { add('F'); } '(' params ')' '{' body '}' { printf("function\n"); 
+    $$.nd = mknode($5.nd, $8.nd, $2.name);}
     ;
 
 functions: functions function { printf("functions\n"); 
@@ -118,12 +127,12 @@ class_variable: TK_IDENTIFIER TK_DOT TK_IDENTIFIER { printf("class variable\n");
 class_function_call: TK_IDENTIFIER TK_DOT TK_IDENTIFIER '(' params_call ')' { printf("class function call\n"); }
     ;
 
-params: params TK_COMMA datatype TK_IDENTIFIER { printf("params\n"); }
+params: params TK_COMMA datatype TK_IDENTIFIER { printf("params\n"); $$.nd = mknode(NULL, NULL, "params");}
     | datatype TK_IDENTIFIER { printf("params\n"); }
     |
     ;
 
-body: body stmt { printf("body\n"); 
+body: stmt body { printf("body\n"); 
     $$.nd = mknode($1.nd, $2.nd, "body");
     }
     | { $$.nd = NULL;}
@@ -168,7 +177,11 @@ comparator_binary: TK_EQ
 comparator_unary: TK_NOT
     ;
 
-declaration: datatype TK_IDENTIFIER {add('V');} assignment
+declaration: datatype array_sign TK_IDENTIFIER {add('V');} assignment {$$.nd = mknode(NULL, NULL, "declaration");}
+    ;
+
+array_sign: '[' TK_INT ']' { printf("array\n"); }
+    | { ; }
     ;
 
 datatype: TK_INT_TYPE {printf("int type\n"); insert_type(); }
@@ -249,8 +262,12 @@ int main(int argc, char **argv)
 		free(symbol_table[i].type);
 	}
 
-    printf("\n");
+    printf("In Order:\n");
     printInorder(head);
+    printf("\n");
+
+    printf("Pre Order:\n");
+    printPreorder(head);
     printf("\n");
     
     return 0;
@@ -335,5 +352,15 @@ void printInorder(struct node *tree) {
     printf("%s, ", tree->token); 
     if (tree->right) {  
         printInorder(tree->right); 
+    }
+}
+void printPreorder(struct node *tree) {
+    int i; 
+    printf("%s, ", tree->token); 
+    if (tree->left) {
+        printPreorder(tree->left); 
+    } 
+    if (tree->right) {  
+        printPreorder(tree->right); 
     }
 }
