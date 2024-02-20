@@ -56,7 +56,7 @@
 %token <nd_obj> TK_COMMA TK_SEMICOLON TK_DOT
 %token <nd_obj> TK_INT TK_IDENTIFIER TK_FLOAT TK_STRING TK_CHAR
 
-%type <nd_obj> headers main body return datatype expr stmt assignment value program comparator_binary comparator_unary functions function include params class_params class_body declaration
+%type <nd_obj> headers main body return datatype expr stmt assignment value program comparator_binary comparator_unary functions function include params class_params class_body declaration condition term arithmetic
 
 %left TK_PLUS TK_MINUS
 %left TK_MULT TK_DIV
@@ -146,11 +146,16 @@ return: TK_RETURN { add('K'); } expr TK_SEMICOLON { printf("return\n"); $$.nd = 
 
 stmt:  TK_PRINT { add('K'); } expr TK_SEMICOLON                 { printf("print expr\n"); $$.nd = mknode(NULL, NULL, "print"); }
     | TK_IDENTIFIER TK_ASSIGN expr TK_SEMICOLON                 { printf("identifier assign expr smc\n"); $$.nd = mknode($1.nd, $3.nd, "assign");}
-    | class_var_assn TK_SEMICOLON                               { printf("class var assn smc\n"); }
+    | class_variable TK_ASSIGN expr TK_SEMICOLON                { printf("class var assn smc\n"); }
     | term TK_SEMICOLON                                         { printf("term smc\n"); }
     | declaration TK_SEMICOLON                                  { printf("declaration smc\n"); }
     | TK_IF { add('K'); } '(' condition ')' '{' body '}' else   { printf("if\n"); }
-    | TK_WHILE { add('K'); } '(' condition ')' '{' body '}'     { printf("while\n"); }
+    
+    | TK_WHILE { add('K'); } '(' condition ')' '{' body '}'     {
+        printf("while\n"); 
+        $$.nd = mknode($4.nd, $7.nd, "while");
+    }
+    
     | return                                                    { printf("return smc\n");}
     ;
 
@@ -177,7 +182,13 @@ comparator_binary: TK_EQ
 comparator_unary: TK_NOT
     ;
 
-declaration: datatype array_sign TK_IDENTIFIER {add('V');} assignment {$$.nd = mknode(NULL, NULL, "declaration");}
+declaration: datatype array_sign TK_IDENTIFIER {add('V');} assignment {
+    char* newstr =  (char*)malloc(strlen($3.name)+13);
+    strcpy(newstr, "declaration(");
+    strcat(newstr, $3.name);
+    strcat(newstr, ")");
+
+    $$.nd = mknode($1.nd, $5.nd, newstr);}
     ;
 
 array_sign: '[' TK_INT ']' { printf("array\n"); }
@@ -191,16 +202,24 @@ datatype: TK_INT_TYPE {printf("int type\n"); insert_type(); }
     | TK_CLASS_IDENTIFIER {printf("class type\n"); insert_type();}
     ;
 
-assignment: TK_ASSIGN expr
-    | TK_ASSIGN TK_CLASS_IDENTIFIER '(' params_call ')' {;}
-    | 
+assignment: TK_ASSIGN expr {
+    $$.nd = mknode($2.nd, NULL, "assignment");
+    }
+
+    | TK_ASSIGN TK_CLASS_IDENTIFIER '(' params_call ')' {
+        $$.nd = mknode(NULL, NULL, "assignment-cls.id");
+    }
+
+    | {$$.nd = NULL;}
     ;
 
-class_var_assn: class_variable TK_ASSIGN expr {;}
-    ;
-
-expr: term {;}
-    | expr arithmetic term { ; }
+expr: term {
+    $$.nd = $1.nd;
+    }
+    
+    | term arithmetic expr {
+        $$.nd = mknode($1.nd, $3.nd, $2.name);
+    }
     ;
 
 arithmetic: TK_PLUS { ; }
