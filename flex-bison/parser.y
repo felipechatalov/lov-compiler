@@ -56,7 +56,7 @@
 %token <nd_obj> TK_COMMA TK_SEMICOLON TK_DOT
 %token <nd_obj> TK_INT TK_IDENTIFIER TK_FLOAT TK_STRING TK_CHAR
 
-%type <nd_obj> headers main body return datatype expr stmt assignment value program comparator_binary comparator_unary functions function include params class_params class_body declaration condition term arithmetic class_variable else function_call
+%type <nd_obj> headers main body return datatype expr stmt assignment value program comparator_binary comparator_unary functions function include params class_params class_body declaration condition term arithmetic class_variable else function_call params_call class_function_call
 
 %left TK_PLUS TK_MINUS
 %left TK_MULT TK_DIV
@@ -82,8 +82,12 @@ program: headers functions main '(' params ')' '{' body '}' { printf("program\n"
 class: TK_CLASS TK_CLASS_IDENTIFIER { add('L'); printf("class\n"); }
     ;
 
-class_body: class_stmt class_body  { printf("class body\n"); $$.nd = mknode(NULL, NULL, "class body");}
-    |
+class_body: class_stmt class_body  { 
+        printf("class body\n"); 
+        $$.nd = mknode(NULL, NULL, "class body");
+    }
+    
+    | { $$.nd = NULL; }
     ;
 
 class_stmt: datatype TK_IDENTIFIER {add('V'); } assignment TK_SEMICOLON { printf("class var decl\n"); }
@@ -105,14 +109,22 @@ functions: functions function { printf("functions\n");
     ;
 
 function_call: TK_IDENTIFIER '(' params_call ')' { 
-    printf("function call\n"); 
-    $$.nd = mknode(NULL, NULL, $1.name);
+        printf("function call\n"); 
+        $$.nd = mknode(NULL, NULL, $1.name);
     }
     ;
 
-params_call: params_call TK_COMMA expr { printf("params call\n"); }
-    | expr { printf("params call\n"); }
-    |
+params_call: expr TK_COMMA params_call { 
+        printf("params call\n");
+        $$.nd = mknode($1.nd, $3.nd, "params");
+    }
+
+    | expr { 
+        printf("params call\n"); 
+        $$.nd = mknode($1.nd, NULL, "params");
+    }
+
+    | { $$.nd = NULL;}
     ;
 
 headers: include TK_SEMICOLON headers  { printf("headers\n"); 
@@ -134,24 +146,45 @@ class_variable: TK_IDENTIFIER TK_DOT TK_IDENTIFIER {
     $$.nd = mknode(NULL, NULL, newstr);}
     ;
 
-class_function_call: TK_IDENTIFIER TK_DOT TK_IDENTIFIER '(' params_call ')' { printf("class function call\n"); }
+class_function_call: TK_IDENTIFIER TK_DOT TK_IDENTIFIER '(' params_call ')' { 
+        printf("class function call\n"); 
+        char* newstr =  (char*)malloc(strlen($1.name)+strlen($3.name)+1);
+        strcpy(newstr, $1.name);
+        strcat(newstr, ".");
+        strcat(newstr, $3.name);
+        $$.nd = mknode($5.nd, NULL, newstr);
+    }
     ;
 
-params: params TK_COMMA datatype TK_IDENTIFIER { printf("params\n"); $$.nd = mknode(NULL, NULL, "params");}
-    | datatype TK_IDENTIFIER { printf("params\n"); }
-    |
+params: params TK_COMMA datatype TK_IDENTIFIER { 
+        printf("params\n"); 
+        $$.nd = mknode(NULL, NULL, "params");
+    }
+
+    | datatype TK_IDENTIFIER { 
+        printf("params\n"); 
+    }
+
+    | {
+        $$.nd = NULL;
+    }
     ;
 
 body: stmt body { printf("body\n"); 
     $$.nd = mknode($1.nd, $2.nd, "body");
     }
-    | { $$.nd = NULL;}
+
+    | { 
+        $$.nd = NULL;
+    }
     ;
 
 main: datatype TK_MAIN { printf("main\n"); add('F'); }
     ;
 
-return: TK_RETURN { add('K'); } expr TK_SEMICOLON { printf("return\n"); $$.nd = mknode(NULL, NULL, "return");}
+return: TK_RETURN { add('K'); } expr TK_SEMICOLON { 
+        printf("return\n"); 
+        $$.nd = mknode($3.nd, NULL, "return");}
     ;
 
 stmt:  TK_PRINT { add('K'); } expr TK_SEMICOLON  {
@@ -191,17 +224,35 @@ stmt:  TK_PRINT { add('K'); } expr TK_SEMICOLON  {
         $$.nd = mknode($4.nd, $7.nd, "while");
     }
     
-    | return                                                    { printf("return smc\n");}
+    | return { 
+        printf("return smc\n");
+        $$.nd = $1.nd;    
+    }
     ;
 
-else: TK_ELSE {add('K');} '{' body '}' { printf("else\n"); }
-    |
+else: TK_ELSE {add('K');} '{' body '}' { 
+        printf("else\n"); 
+        $$.nd = mknode($4.nd, NULL, "else");
+    }
+
+    | { $$.nd = NULL; }
     ;
 
-condition: expr comparator_binary expr { ; }
-    | comparator_unary expr { ; }
-    | TK_TRUE { add('K'); } { ; }
-    | TK_FALSE { add('K'); } { ; }
+condition: expr comparator_binary expr { 
+        $$.nd = mknode($1.nd, $3.nd, $2.name); 
+    }
+
+    | comparator_unary expr { 
+        $$.nd = mknode($2.nd, NULL, $1.name);
+    }
+
+    | TK_TRUE { add('K'); } { 
+        $$.nd = mknode(NULL, NULL, "true");
+    }
+
+    | TK_FALSE { add('K'); } { 
+        $$.nd = mknode(NULL, NULL, "false"); 
+    }
     ;
 
 comparator_binary: TK_EQ 
@@ -218,12 +269,9 @@ comparator_unary: TK_NOT
     ;
 
 declaration: datatype array_sign TK_IDENTIFIER {add('V');} assignment {
-    char* newstr =  (char*)malloc(strlen($3.name)+13);
-    strcpy(newstr, "declaration(");
-    strcat(newstr, $3.name);
-    strcat(newstr, ")");
-
-    $$.nd = mknode($1.nd, $5.nd, newstr);}
+    struct node* newnode = mknode(NULL, NULL, $3.name);
+    $$.nd = mknode(newnode, $5.nd, "declaration");
+    }
     ;
 
 array_sign: '[' TK_INT ']' { printf("array\n"); }
@@ -242,7 +290,8 @@ assignment: TK_ASSIGN expr {
     }
 
     | TK_ASSIGN TK_CLASS_IDENTIFIER '(' params_call ')' {
-        $$.nd = mknode(NULL, NULL, "assignment-cls.id");
+        struct node* newnode = mknode(NULL, NULL, $2.name);
+        $$.nd = mknode(newnode, $4.nd, "assignment-cls.id");
     }
 
     | {$$.nd = NULL;}
@@ -286,7 +335,7 @@ term : value {
     }
     
     | class_function_call { 
-        $$.nd = mknode(NULL, NULL, "cfunc-call");
+        $$.nd = mknode($1.nd, NULL, "cfunc-call");
     }
 
     | TK_READ { add('K'); } '(' ')' { 
