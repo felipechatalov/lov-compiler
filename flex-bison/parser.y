@@ -32,11 +32,12 @@
         char *token;
     }node;
 
+    FILE* fp;
     struct node* head;
+    struct node* class;
     struct node* mknode(struct node*, struct node*, char*);
     void printInorder(struct node*);
     void printPreorder(struct node*);
-    struct node* include_file(char*);
 %}
 
 
@@ -57,7 +58,7 @@
 %token <nd_obj> TK_COMMA TK_SEMICOLON TK_DOT
 %token <nd_obj> TK_INT TK_IDENTIFIER TK_FLOAT TK_STRING TK_CHAR
 
-%type <nd_obj> headers main body return datatype expr stmt assignment value program comparator_binary comparator_unary functions function include params class_params class_body declaration condition term arithmetic class_variable else function_call params_call class_function_call
+%type <nd_obj> headers main body return datatype expr stmt assignment value program comparator_binary comparator_unary functions function include params class_params class_body declaration condition term arithmetic class_variable else function_call params_call class_function_call class_stmt
 
 %left TK_PLUS TK_MINUS
 %left TK_MULT TK_DIV
@@ -74,11 +75,14 @@ program: headers functions main '(' params ')' '{' body '}' {
         new->token = "functions";
         $$.nd = mknode($1.nd, new, "program");
         head = $$.nd;
+        printf("principal\n");
         }
     
     | class '(' params ')' '{' class_body '}' { 
         $$.nd = mknode($3.nd, $6.nd, "class");
-        head = $$.nd;
+        printf("inclass\n");
+        class = $$.nd;
+        printf("classe rec\n");
         }
     ;
 
@@ -86,23 +90,31 @@ class: TK_CLASS TK_CLASS_IDENTIFIER { add('L'); printf("class\n"); }
     ;
 
 class_body: class_stmt class_body  { 
-        $$.nd = mknode(NULL, NULL, "class body");
+        $$.nd = mknode($1.nd, $2.nd, "class body");
     }
     
     | { $$.nd = NULL; }
     ;
 
 class_stmt: datatype TK_IDENTIFIER {add('V'); } assignment TK_SEMICOLON { 
-
+        struct node* newnode = mknode(NULL, NULL, $2.name);
+        $$.nd = mknode(newnode, $4.nd, "declaration");
     }
 
     | datatype TK_IDENTIFIER { add('F'); } '(' class_params ')' '{' body '}' { 
-
+        $$.nd = mknode($5.nd, $8.nd, $2.name);
     }
     ;
 
-class_params: TK_SELF { ; }
-    | TK_SELF TK_COMMA params { ; }
+class_params: TK_SELF { 
+        struct node* newnode = mknode(NULL, NULL, "self");
+        $$.nd = mknode(newnode, NULL, "class-params");
+    }
+
+    | TK_SELF TK_COMMA params { 
+        struct node* newnode = mknode(NULL, NULL, "self");
+        $$.nd = mknode(newnode, $3.nd, "class-params");
+    }
     ;
 
 function: datatype TK_IDENTIFIER { add('F'); } '(' params ')' '{' body '}' {  
@@ -139,12 +151,10 @@ headers: include TK_SEMICOLON headers  { printf("headers\n");
 
 include: TK_INCLUDE TK_STRING { 
         add('H');
-        //struct node* filetree = include_file($2.name); 
 
         printf("aq\n");
 
-        //$$.nd = mknode(filetree, NULL, $2.name); 
-        $$.nd = mknode(NULL, NULL, $2.name);
+        $$.nd = mknode(class, NULL, $2.name);
 
         printf("aq2\n");
     }
@@ -168,12 +178,14 @@ class_function_call: TK_IDENTIFIER TK_DOT TK_IDENTIFIER '(' params_call ')' {
     }
     ;
 
-params: params TK_COMMA datatype TK_IDENTIFIER { 
-        $$.nd = mknode(NULL, NULL, "params");
+params: datatype TK_IDENTIFIER TK_COMMA params { 
+        struct node* newnode = mknode(NULL, NULL, $2.name);
+        $$.nd = mknode(newnode, $4.nd, "params");
     }
 
     | datatype TK_IDENTIFIER { 
-
+        struct node* newnode = mknode(NULL, NULL, $2.name);
+        $$.nd = mknode(newnode, NULL, "params");
     }
 
     | {
@@ -358,18 +370,21 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    FILE *fp = fopen(argv[1], "r");
-    if (fp == NULL)
+    for (int i = 1; i < argc; i++)
     {
-        printf("Error: could not open file %s\n", argv[1]);
-        return 1;
+        FILE *fp = fopen(argv[i], "r");
+        if (fp == NULL)
+        {
+            printf("Error: could not open file %s\n", argv[i]);
+            return 1;
+        }
+
+        yyin = fp;
+
+        printf("yyparse %d\n", yyparse());
+
+        fclose(fp);
     }
-
-    yyin = fp;
-
-    yyparse();
-
-    fclose(fp);
 
 
     int i = 0;
@@ -382,15 +397,27 @@ int main(int argc, char **argv)
 		free(symbol_table[i].type);
 	}
 
-    printf("In Order:\n");
-    printInorder(head);
-    printf("\n");
+    if (head != NULL){
+        printf("In Order:\n");
+        printInorder(head);
+        printf("\n");
 
-    printf("Pre Order:\n");
-    printPreorder(head);
-    printf("\n");
-    
-    return 0;
+        printf("Pre Order:\n");
+        printPreorder(head);
+        printf("\n");
+    }
+    if (class == NULL){
+        printf("clasisnull\n");
+    }
+    if (class != NULL){
+        printf("In Order:\n");
+        printInorder(class);
+        printf("\n");
+
+        printf("Pre Order:\n");
+        printPreorder(class);
+        printf("\n");
+    }
 }
 
 void yyerror(const char* s) {
@@ -483,28 +510,4 @@ void printPreorder(struct node *tree) {
     if (tree->right) {  
         printPreorder(tree->right); 
     }
-}
-struct node* include_file(char* filename) {
-    printf("%s\n", filename);
-    filename = &filename[1];
-
-    printf("%s\n", filename);
-    filename[strlen(filename)-1] = '\0';
-
-    printf("%s\n", filename);
-
-    FILE *fp = fopen(filename, "r");
-    if (fp == NULL)
-    {
-        printf("Error: could not open file %s\n", filename);
-        return NULL;
-    }
-
-    yyin = fp;
-
-    yyparse();
-
-    fclose(fp);
-
-    return head;
 }
