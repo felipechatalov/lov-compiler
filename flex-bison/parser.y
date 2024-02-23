@@ -33,8 +33,12 @@
     }node;
 
     FILE* fp;
+    int cur_class = 0;
+    struct node* classes[10];
+    char* classes_name[10];
     struct node* head;
     struct node* class;
+    char* active_file_name;
     struct node* mknode(struct node*, struct node*, char*);
     void printInorder(struct node*);
     void printPreorder(struct node*);
@@ -58,7 +62,7 @@
 %token <nd_obj> TK_COMMA TK_SEMICOLON TK_DOT
 %token <nd_obj> TK_INT TK_IDENTIFIER TK_FLOAT TK_STRING TK_CHAR
 
-%type <nd_obj> headers main body return datatype expr stmt assignment value program comparator_binary comparator_unary functions function include params class_params class_body declaration condition term arithmetic class_variable else function_call params_call class_function_call class_stmt
+%type <nd_obj> headers main body return datatype expr stmt assignment value program comparator_binary comparator_unary functions function include params class_params class_body declaration condition term arithmetic class_variable else function_call params_call class_function_call class_stmt class
 
 %left TK_PLUS TK_MINUS
 %left TK_MULT TK_DIV
@@ -81,12 +85,25 @@ program: headers functions main '(' params ')' '{' body '}' {
     | class '(' params ')' '{' class_body '}' { 
         $$.nd = mknode($3.nd, $6.nd, "class");
         printf("inclass\n");
-        class = $$.nd;
+        classes[cur_class] = $$.nd;
+        
+        char* newstr = (char*)malloc(strlen(active_file_name)+2);
+        newstr[0] = '"';
+        strcat(newstr, active_file_name);
+        newstr[strlen(active_file_name)+1] = '"';
+        newstr[strlen(active_file_name)+2] = '\0';
+        classes_name[cur_class] = newstr;
+
+        cur_class++;
         printf("classe rec\n");
         }
     ;
 
-class: TK_CLASS TK_CLASS_IDENTIFIER { add('L'); printf("class\n"); }
+class: TK_CLASS TK_CLASS_IDENTIFIER { 
+        add('L'); 
+        printf("class\n"); 
+        $$.nd = mknode(NULL, NULL, $2.name);    
+    }
     ;
 
 class_body: class_stmt class_body  { 
@@ -153,10 +170,19 @@ include: TK_INCLUDE TK_STRING {
         add('H');
 
         printf("aq\n");
+        for (int i = 0; i < cur_class; i++){
+            printf("aq1 %s with %s\n", classes_name[i], $2.name);
+            
+            if (strcmp(classes_name[i], $2.name) == 0){
+                printf("aq2 %s\n", classes_name[i]);
+                class = classes[i];
+            }
+        }
+
 
         $$.nd = mknode(class, NULL, $2.name);
-
-        printf("aq2\n");
+        class = NULL;
+        printf("aq3\n");
     }
     ;
 
@@ -378,7 +404,7 @@ int main(int argc, char **argv)
             printf("Error: could not open file %s\n", argv[i]);
             return 1;
         }
-
+        active_file_name = argv[i];
         yyin = fp;
 
         printf("yyparse %d\n", yyparse());
