@@ -4,7 +4,6 @@
     #include <ctype.h>
     #include <string.h>
     // https://medium.com/codex/building-a-c-compiler-using-lex-and-yacc-446262056aaa
-    
     int yylex();
     void yyerror(const char* s);
 
@@ -21,6 +20,7 @@
         char* type;
         char* data_type;
         int line_no;
+        char* file;
     }symbol_table[100];
     int count = 0;
     int q;
@@ -42,6 +42,13 @@
     struct node* mknode(struct node*, struct node*, char*);
     void printInorder(struct node*);
     void printPreorder(struct node*);
+
+    void check_declaration(char*);
+    void check_return_type(char*);
+    int check_types(char*, char*);
+    char* get_type(char*);
+    int sem_errors;
+    char errors[10][100];
 %}
 
 
@@ -79,12 +86,10 @@ program: headers functions main '(' params ')' '{' body '}' {
         new->token = "functions";
         $$.nd = mknode($1.nd, new, "program");
         head = $$.nd;
-        printf("principal\n");
         }
     
     | class '(' params ')' '{' class_body '}' { 
         $$.nd = mknode($3.nd, $6.nd, "class");
-        printf("inclass\n");
         classes[cur_class] = $$.nd;
         
         char* newstr = (char*)malloc(strlen(active_file_name)+2);
@@ -95,13 +100,11 @@ program: headers functions main '(' params ')' '{' body '}' {
         classes_name[cur_class] = newstr;
 
         cur_class++;
-        printf("classe rec\n");
         }
     ;
 
 class: TK_CLASS TK_CLASS_IDENTIFIER { 
         add('L'); 
-        printf("class\n"); 
         $$.nd = mknode(NULL, NULL, $2.name);    
     }
     ;
@@ -160,7 +163,7 @@ params_call: expr TK_COMMA params_call {
     | { $$.nd = NULL;}
     ;
 
-headers: include TK_SEMICOLON headers  { printf("headers\n"); 
+headers: include TK_SEMICOLON headers  {
     $$.nd = mknode($1.nd, $3.nd, "headers");
     }
     | {$$.nd = NULL;}
@@ -169,12 +172,9 @@ headers: include TK_SEMICOLON headers  { printf("headers\n");
 include: TK_INCLUDE TK_STRING { 
         add('H');
 
-        printf("aq\n");
         for (int i = 0; i < cur_class; i++){
-            printf("aq1 %s with %s\n", classes_name[i], $2.name);
             
             if (strcmp(classes_name[i], $2.name) == 0){
-                printf("aq2 %s\n", classes_name[i]);
                 class = classes[i];
             }
         }
@@ -182,7 +182,6 @@ include: TK_INCLUDE TK_STRING {
 
         $$.nd = mknode(class, NULL, $2.name);
         class = NULL;
-        printf("aq3\n");
     }
     ;
 
@@ -204,12 +203,12 @@ class_function_call: TK_IDENTIFIER TK_DOT TK_IDENTIFIER '(' params_call ')' {
     }
     ;
 
-params: datatype TK_IDENTIFIER TK_COMMA params { 
+params: datatype TK_IDENTIFIER {add('V');} TK_COMMA params { 
         struct node* newnode = mknode(NULL, NULL, $2.name);
         $$.nd = mknode(newnode, $4.nd, "params");
     }
 
-    | datatype TK_IDENTIFIER { 
+    | datatype TK_IDENTIFIER {add('V');} { 
         struct node* newnode = mknode(NULL, NULL, $2.name);
         $$.nd = mknode(newnode, NULL, "params");
     }
@@ -220,7 +219,6 @@ params: datatype TK_IDENTIFIER TK_COMMA params {
     ;
 
 body: stmt body {  
-    printf("body\n");
     $$.nd = mknode($1.nd, $2.nd, "body");
     }
 
@@ -229,11 +227,10 @@ body: stmt body {
     }
     ;
 
-main: datatype TK_MAIN { printf("main\n"); add('F'); }
+main: datatype TK_MAIN { add('F'); }
     ;
 
 return: TK_RETURN { add('K'); } expr TK_SEMICOLON { 
-        printf("return\n");
         $$.nd = mknode($3.nd, NULL, "return");}
     ;
 
@@ -242,6 +239,8 @@ stmt:  TK_PRINT { add('K'); } expr TK_SEMICOLON  {
     }
 
     | TK_IDENTIFIER TK_ASSIGN expr TK_SEMICOLON  { 
+        printf("tkid %s\n", $1.name);
+        //check_declaration($1.name);
         struct node* newnode = mknode(NULL, NULL, $1.name);
         $$.nd = mknode(newnode, $3.nd, "assign");
     }
@@ -316,7 +315,7 @@ declaration: datatype array_sign TK_IDENTIFIER {add('V');} assignment {
     }
     ;
 
-array_sign: '[' TK_INT ']' { printf("array\n"); }
+array_sign: '[' TK_INT ']' { ; }
     | { ; }
     ;
 
@@ -365,6 +364,7 @@ term : value {
     }
 
     | TK_IDENTIFIER { 
+        check_declaration($1.name);
         $$.nd = mknode(NULL, NULL, $1.name);        
     }
 
@@ -398,6 +398,7 @@ int main(int argc, char **argv)
 
     for (int i = 1; i < argc; i++)
     {
+        countn = 0;
         FILE *fp = fopen(argv[i], "r");
         if (fp == NULL)
         {
@@ -407,7 +408,7 @@ int main(int argc, char **argv)
         active_file_name = argv[i];
         yyin = fp;
 
-        printf("yyparse %d\n", yyparse());
+        yyparse();
 
         fclose(fp);
     }
@@ -416,7 +417,7 @@ int main(int argc, char **argv)
     int i = 0;
     printf("\nSYMBOL   DATATYPE   TYPE   LINE NUMBER \n");
     for(i=0; i<count; i++) {
-		printf("%s\t%s\t%s\t%d\t\n", symbol_table[i].id_name, symbol_table[i].data_type, symbol_table[i].type, symbol_table[i].line_no);
+		printf("%s\t%s\t%s\t%d\t%s\t\n", symbol_table[i].id_name, symbol_table[i].data_type, symbol_table[i].type, symbol_table[i].line_no, symbol_table[i].file);
 	}
 	for(i=0;i<count;i++) {
 		free(symbol_table[i].id_name);
@@ -432,22 +433,21 @@ int main(int argc, char **argv)
         printPreorder(head);
         printf("\n");
     }
-    if (class == NULL){
-        printf("clasisnull\n");
-    }
-    if (class != NULL){
-        printf("In Order:\n");
-        printInorder(class);
-        printf("\n");
 
-        printf("Pre Order:\n");
-        printPreorder(class);
-        printf("\n");
-    }
+    if(sem_errors>0) {
+		printf("Semantic analysis completed with %d errors\n", sem_errors);
+		for(int i=0; i<sem_errors; i++){
+			printf("\t - %s", errors[i]);
+		}
+	} else {
+		printf("Semantic analysis completed with no errors");
+	}
+	printf("\n\n");
 }
 
 void yyerror(const char* s) {
     fprintf(stderr, "%s\n", s);
+    exit(1);
 }
 
 void insert_type() {
@@ -466,44 +466,51 @@ int search(char *type) {
 }
 
 void add(char c) {
-    q=search(yytext);
+    printf("%s vs %s\n", yytext, str_holder);
+    q=search(str_holder);
     if(!q) {
         if(c == 'H') {
-            symbol_table[count].id_name=strdup(yylval.nd_obj.name);        
+            symbol_table[count].id_name=strdup(str_holder);        
             symbol_table[count].data_type=strdup(type);     
             symbol_table[count].line_no=countn;    
             symbol_table[count].type=strdup("Header");
+            symbol_table[count].file=strdup(active_file_name);
             count++;  
         }  
         else if(c == 'K') {
-            symbol_table[count].id_name=strdup(yylval.nd_obj.name);
+            symbol_table[count].id_name=strdup(str_holder);
             symbol_table[count].data_type=strdup("N/A");
             symbol_table[count].line_no=countn;
-            symbol_table[count].type=strdup("Keyword\t");   
+            symbol_table[count].type=strdup("Keyword\t");
+            symbol_table[count].file=strdup(active_file_name);   
             count++;  
         }  else if(c == 'V') {
             symbol_table[count].id_name=strdup(str_holder);
             symbol_table[count].data_type=strdup(type);
             symbol_table[count].line_no=countn;
-            symbol_table[count].type=strdup("Variable");   
+            symbol_table[count].type=strdup("Variable");
+            symbol_table[count].file=strdup(active_file_name);   
             count++;  
         }  else if(c == 'C') {
-            symbol_table[count].id_name=strdup(yylval.nd_obj.name);
+            symbol_table[count].id_name=strdup(str_holder);
             symbol_table[count].data_type=strdup("CONST");
             symbol_table[count].line_no=countn;
             symbol_table[count].type=strdup("Constant");   
+            symbol_table[count].file=strdup(active_file_name);
             count++;  
         }  else if(c == 'F') {
             symbol_table[count].id_name=strdup(str_holder);
             symbol_table[count].data_type=strdup(type);
             symbol_table[count].line_no=countn;
             symbol_table[count].type=strdup("Function");   
+            symbol_table[count].file=strdup(active_file_name);
             count++;  
         }  else if(c == 'L') {
             symbol_table[count].id_name=strdup(yylval.nd_obj.name);
-            symbol_table[count].data_type=strdup(type);
+            symbol_table[count].data_type=strdup("Class");
             symbol_table[count].line_no=countn;
             symbol_table[count].type=strdup("Class");   
+            symbol_table[count].file=strdup(active_file_name);
             count++;  
         }
     }
@@ -536,4 +543,53 @@ void printPreorder(struct node *tree) {
     if (tree->right) {  
         printPreorder(tree->right); 
     }
+}
+void check_declaration(char *c) {
+    //printf("Checking decl for %s\n", c);    
+    q = search(c);    
+    //printf("return %d\n", q);
+    if(!q) {        
+        sprintf(errors[sem_errors], "Line %d: Variable \"%s\" not declared before usage in file %s!\n", countn+1, c, active_file_name);  
+        sem_errors++;    
+    }
+}
+void check_return_type(char *value) {
+	char *main_datatype = get_type("main");
+	char *return_datatype = get_type(value);
+	if((!strcmp(main_datatype, "int") && !strcmp(return_datatype, "CONST")) || !strcmp(main_datatype, return_datatype)){
+		return ;
+	}
+	else {
+		sprintf(errors[sem_errors], "Line %d: Return type mismatch\n", countn+1);
+		sem_errors++;
+	}
+}
+int check_types(char *type1, char *type2){
+	// declaration with no init
+	if(!strcmp(type2, "null"))
+		return -1;
+	// both datatypes are same
+	if(!strcmp(type1, type2))
+		return 0;
+	// both datatypes are different
+	if(!strcmp(type1, "int") && !strcmp(type2, "float"))
+		return 1;
+	if(!strcmp(type1, "float") && !strcmp(type2, "int"))
+		return 2;
+	if(!strcmp(type1, "int") && !strcmp(type2, "char"))
+		return 3;
+	if(!strcmp(type1, "char") && !strcmp(type2, "int"))
+		return 4;
+	if(!strcmp(type1, "float") && !strcmp(type2, "char"))
+		return 5;
+	if(!strcmp(type1, "char") && !strcmp(type2, "float"))
+		return 6;
+}
+char *get_type(char *var){
+	for(int i=0; i<count; i++) {
+		// Handle case of use before declaration
+		if(!strcmp(symbol_table[i].id_name, var)) {
+			return symbol_table[i].data_type;
+		}
+	}
 }
