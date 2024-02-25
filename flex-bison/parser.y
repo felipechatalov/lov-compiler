@@ -147,7 +147,8 @@ functions: functions function {
     | { $$.nd = NULL;}
     ;
 
-function_call: TK_IDENTIFIER '(' params_call ')' { 
+function_call: TK_IDENTIFIER '(' params_call ')' {
+        check_declaration($1.name); 
         $$.nd = mknode(NULL, NULL, $1.name);
     }
     ;
@@ -195,6 +196,8 @@ class_variable: TK_IDENTIFIER TK_DOT TK_IDENTIFIER {
     ;
 
 class_function_call: TK_IDENTIFIER TK_DOT TK_IDENTIFIER '(' params_call ')' { 
+        check_declaration($1.name);
+        check_declaration($3.name);
         char* newstr =  (char*)malloc(strlen($1.name)+strlen($3.name)+1);
         strcpy(newstr, $1.name);
         strcat(newstr, ".");
@@ -240,7 +243,7 @@ stmt:  TK_PRINT { add('K'); } expr TK_SEMICOLON  {
 
     | TK_IDENTIFIER TK_ASSIGN expr TK_SEMICOLON  { 
         printf("tkid %s\n", $1.name);
-        //check_declaration($1.name);
+        check_declaration($1.name);
         struct node* newnode = mknode(NULL, NULL, $1.name);
         $$.nd = mknode(newnode, $3.nd, "assign");
     }
