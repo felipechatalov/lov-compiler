@@ -5,7 +5,8 @@
     #include <string.h>
     // https://medium.com/codex/building-a-c-compiler-using-lex-and-yacc-446262056aaa
     int yylex();
-    void yyerror(const char* s);
+    void yyerror(const char*);
+    void lex_error(int);
 
     extern int countn;
     extern char str_holder[100];
@@ -50,12 +51,18 @@
     char* find_type(struct node*);
     char* get_type(char*);
     int sem_errors;
-    char errors[10][100];
+    char errors[10][150];
     char* temp_type;
+
+    int temp_var=0; 
+    int label=0; 
+    int is_ifelse=0;
+    int ic_idx=0;
+    char icg[50][100];
 %}
 
 
-%union {
+%union { 
     int intval; 
     float floatval;
     char* strval;
@@ -63,6 +70,13 @@
         char name[100];
         struct node* nd;
     }nd_obj;
+
+    struct nd_obj_ifelse{
+        char name[100];
+        struct node* nd;
+        char if_body[5];
+        char else_body[5];
+    }nd_obj_ifelse;
 }
 
 %token <nd_obj> TK_PRINT TK_IF TK_ELSE TK_WHILE TK_CLASS TK_AND TK_OR TK_NOT TK_INT_TYPE TK_FLOAT_TYPE TK_STRING_TYPE TK_CHAR_TYPE TK_RETURN TK_MAIN
@@ -72,7 +86,8 @@
 %token <nd_obj> TK_COMMA TK_SEMICOLON TK_DOT
 %token <nd_obj> TK_INT TK_IDENTIFIER TK_FLOAT TK_STRING TK_CHAR
 
-%type <nd_obj> headers main body return datatype expr stmt assignment value program comparator_binary comparator_unary functions function include params class_params class_body declaration condition term arithmetic class_variable else function_call params_call class_function_call class_stmt class
+%type <nd_obj> headers main body return datatype expr stmt assignment value program comparator_binary comparator_unary functions function include params class_params class_body declaration term arithmetic class_variable else function_call params_call class_function_call class_stmt class
+%type <nd_obj_ifelse> condition
 
 %left TK_PLUS TK_MINUS
 %left TK_MULT TK_DIV
@@ -274,12 +289,13 @@ stmt:  TK_PRINT { add('K'); } expr TK_SEMICOLON  {
         $$.nd = $1.nd; 
     }
 
-    | TK_IF { add('K'); } '(' condition ')' '{' body '}' else   { 
-        struct node* iff = mknode($4.nd, $7.nd, $1.name);
-        $$.nd = mknode(iff, $9.nd, "if-else");
+    | TK_IF { add('K'); is_ifelse = 1;} '(' condition ')' { sprintf(icg[ic_idx++], "\nLABEL %s:\n", $4.if_body); } '{' body '}' { sprintf(icg[ic_idx++], "\nLABEL %s:\n", $4.else_body); } else   { 
+        struct node* iff = mknode($4.nd, $8.nd, $1.name);
+        $$.nd = mknode(iff, $11.nd, "if-else");
+        sprintf(icg[ic_idx++], "GOTO next\n");
     }
-    
-    | TK_WHILE { add('K'); } '(' condition ')' '{' body '}'     {
+
+    | TK_WHILE { add('K'); is_ifelse = 0; } '(' condition ')' '{' body '}'     {
 
         $$.nd = mknode($4.nd, $7.nd, "while");
     }
@@ -297,7 +313,15 @@ else: TK_ELSE {add('K');} '{' body '}' {
     ;
 
 condition: expr comparator_binary expr { 
-        $$.nd = mknode($1.nd, $3.nd, $2.name); 
+        $$.nd = mknode($1.nd, $3.nd, $2.name);
+        if (is_ifelse){
+            sprintf(icg[ic_idx++], "\nif (%s %s %s) GOTO L%d else GOTO L%d\n", $1.name, $2.name, $3.name, label, label+1);
+            sprintf($$.if_body, "L%d", label++);
+            sprintf($$.else_body, "L%d", label++);
+        }
+        else {
+            sprintf(icg[ic_idx++], "IF %s GOTO next\n", $1.nd->token);
+        }
     }
 
     | comparator_unary expr { 
@@ -468,6 +492,7 @@ int main(int argc, char **argv)
 	} else {
 		printf("Semantic analysis completed with no errors");
 	}
+    printf("\n\t - %s", errors[10]);
 	printf("\n\n");
 }
 
@@ -628,4 +653,8 @@ char *get_type(char *var){
 	}
     printf("Not found %s\n", var);
     return "N/A";
+}
+void lex_error(int line){
+    printf("Lexical error at line %d in file %s\n", line, active_file_name);
+    exit(1);
 }
