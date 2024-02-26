@@ -46,10 +46,12 @@
     void check_declaration(char*);
     void check_multiple_declaration(char*);
     void check_return_type(char*);
-    int check_types(struct node*, struct node*);
+    int check_types(char*, char*);
+    char* find_type(struct node*);
     char* get_type(char*);
     int sem_errors;
     char errors[10][100];
+    char* temp_type;
 %}
 
 
@@ -252,12 +254,15 @@ stmt:  TK_PRINT { add('K'); } expr TK_SEMICOLON  {
 
     | TK_IDENTIFIER TK_ASSIGN expr TK_SEMICOLON  { 
         check_declaration($1.name);
+        //printf("atribuicao %s %s %s\n", $1.name, $3.name, $3.nd->left->token);
+        printf("\natribuicao %s %s\n", $1.name, $3.name);
+        check_types(find_type(mknode(NULL, NULL, $1.name)), find_type($3.nd));
         struct node* newnode = mknode(NULL, NULL, $1.name);
         $$.nd = mknode(newnode, $3.nd, "assign");
     }
 
     | class_variable TK_ASSIGN expr TK_SEMICOLON { 
-        $$.nd = mknode($1.nd, $3.nd, "assign");
+        $$.nd = mknode($1.nd, $3.nd, "assign-cls");
     }
     
     | term TK_SEMICOLON { 
@@ -321,6 +326,11 @@ comparator_unary: TK_NOT
     ;
 
 declaration: datatype array_sign TK_IDENTIFIER {check_multiple_declaration($3.name); add('V');} assignment {
+    printf("\ndeclaracao %s %s %s\n", $1.name, $3.name, $5.name);
+    if ($5.nd != NULL){
+        printf("%s %s %s ... diff null\n", $1.name, $3.name, $5.name);
+        check_types($1.name, find_type($5.nd));
+    }
     struct node* newnode2 = mknode(NULL, NULL, $1.name);
     struct node* newnode = mknode(newnode2, NULL, $3.name);
     $$.nd = mknode(newnode, $5.nd, "declaration");
@@ -335,7 +345,7 @@ datatype: TK_INT_TYPE { insert_type(); $$ = $1; }
     | TK_FLOAT_TYPE { insert_type(); $$ = $1; }
     | TK_STRING_TYPE { insert_type(); $$ = $1; }
     | TK_CHAR_TYPE { insert_type(); $$ = $1; }
-    | TK_CLASS_IDENTIFIER { insert_type(); $$ = $1; }
+    | TK_CLASS_IDENTIFIER { printf("ASASSAAS %s\n", $1.name); check_declaration($1.name); insert_type(); $$ = $1; }
     ;
 
 assignment: TK_ASSIGN expr {
@@ -343,8 +353,10 @@ assignment: TK_ASSIGN expr {
     }
 
     | TK_ASSIGN TK_CLASS_IDENTIFIER '(' params_call ')' {
-        struct node* newnode = mknode(NULL, NULL, $2.name);
-        $$.nd = mknode(newnode, $4.nd, "class-assignment");
+        //struct node* newnode = mknode(NULL, NULL, $2.name);
+        //$$.nd = mknode(newnode, $4.nd, "class-assignment");
+
+        $$.nd = mknode(NULL, NULL, $2.name);
     }
 
     | {$$.nd = NULL;}
@@ -355,7 +367,7 @@ expr: term {
     }
     
     | term arithmetic expr {
-        check_types($1.nd, $3.nd);
+        check_types(find_type($1.nd), find_type($3.nd));
         $$.nd = mknode($1.nd, $3.nd, $2.name);
     }
     ;
@@ -366,10 +378,10 @@ arithmetic: TK_PLUS { ; }
     | TK_DIV { ; }
     ;
 
-value: TK_INT { add('C'); }
-    | TK_FLOAT { add('C'); }
-    | TK_STRING { add('C'); }
-    | TK_CHAR { add('C'); }
+value: TK_INT { temp_type = "int"; add('C'); }
+    | TK_FLOAT { temp_type = "float"; add('C'); }
+    | TK_STRING { temp_type = "string"; add('C'); }
+    | TK_CHAR { temp_type = "char"; add('C'); }
     ;
 
 term : value { 
@@ -464,7 +476,7 @@ void yyerror(const char* s) {
 }
 
 void insert_type() {
-    strcpy(type, yytext);
+    strcpy(type, str_holder);
 }
 
 int search(char *type) { 
@@ -505,7 +517,7 @@ void add(char c) {
             count++;  
         }  else if(c == 'C') {
             symbol_table[count].id_name=strdup(str_holder);
-            symbol_table[count].data_type=strdup(type);
+            symbol_table[count].data_type=strdup(temp_type);
             symbol_table[count].line_no=countn;
             symbol_table[count].type=strdup("Constant");   
             symbol_table[count].file=strdup(active_file_name);
@@ -519,7 +531,7 @@ void add(char c) {
             count++;  
         }  else if(c == 'L') {
             symbol_table[count].id_name=strdup(yylval.nd_obj.name);
-            symbol_table[count].data_type=strdup("Class");
+            symbol_table[count].data_type=strdup(yylval.nd_obj.name);
             symbol_table[count].line_no=countn;
             symbol_table[count].type=strdup("Class");   
             symbol_table[count].file=strdup(active_file_name);
@@ -581,29 +593,20 @@ void check_return_type(char *value) {
 		sem_errors++;
 	}
 }
-int check_types(struct node* left, struct node* right) {
-    if (left == NULL || right == NULL){
-        return 1;
+
+char* find_type(struct node* node){
+    if (node == NULL){
+        return "N/A";
     }
-    printf("got %s and %s\n", left->token, right->token);
-    while(!strcmp(left->token, "*") || !strcmp(left->token, "/") || !strcmp(left->token, "+") || !strcmp(left->token, "-")){
-        left = left->left;
+    while(!strcmp(node->token, "*") || !strcmp(node->token, "/") || !strcmp(node->token, "+") || !strcmp(node->token, "-") || !strcmp(node->token, "=")){
+        node = node->left;
     }
-    while(!strcmp(right->token, "*") || !strcmp(right->token, "/") || !strcmp(right->token, "+") || !strcmp(right->token, "-")){
-        right = right->left;
-    }
-
-    printf("got2 %s and %s\n", left->token, right->token);
-    
-    char* left_type = get_type(left->token);
-    char* right_type = get_type(right->token);
-    
-    printf("left %s right %s\n", left_type, right_type);
-
-    
-
-
-    if(!strcmp(left_type, right_type)){
+    return get_type(node->token);
+}
+int check_types(char* left, char* right) {
+    printf("comparing %s and %s\n", left, right);
+    if(!strcmp(left, right)){
+        printf("Type match\n");
         return 1;
     }
     else {
@@ -611,6 +614,7 @@ int check_types(struct node* left, struct node* right) {
         sem_errors++;
     }
 }
+
 char *get_type(char *var){
     printf("searching for %s\n", var);
 	for(int i=0; i<count; i++) {
@@ -620,4 +624,6 @@ char *get_type(char *var){
 			return symbol_table[i].data_type;
 		}
 	}
+    printf("Not found %s\n", var);
+    return "N/A";
 }
