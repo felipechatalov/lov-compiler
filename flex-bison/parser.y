@@ -44,6 +44,7 @@
     void printPreorder(struct node*);
 
     void check_declaration(char*);
+    void check_multiple_declaration(char*);
     void check_return_type(char*);
     int check_types(char*, char*);
     char* get_type(char*);
@@ -116,12 +117,14 @@ class_body: class_stmt class_body  {
     | { $$.nd = NULL; }
     ;
 
-class_stmt: datatype TK_IDENTIFIER {add('V'); } assignment TK_SEMICOLON { 
+class_stmt: datatype TK_IDENTIFIER {check_multiple_declaration($2.name); add('V'); } assignment TK_SEMICOLON {
+        
         struct node* newnode = mknode(NULL, NULL, $2.name);
         $$.nd = mknode(newnode, $4.nd, "declaration");
     }
 
-    | datatype TK_IDENTIFIER { add('F'); } '(' class_params ')' '{' body '}' { 
+    | datatype TK_IDENTIFIER {check_multiple_declaration($2.name); add('F'); } '(' class_params ')' '{' body '}' { 
+        
         $$.nd = mknode($5.nd, $8.nd, $2.name);
     }
     ;
@@ -137,7 +140,8 @@ class_params: TK_SELF {
     }
     ;
 
-function: datatype TK_IDENTIFIER { add('F'); } '(' params ')' '{' body '}' {  
+function: datatype TK_IDENTIFIER {check_multiple_declaration($2.name); add('F'); } '(' params ')' '{' body '}' {
+    
     $$.nd = mknode($5.nd, $8.nd, $2.name);}
     ;
 
@@ -171,6 +175,7 @@ headers: include TK_SEMICOLON headers  {
     ;
 
 include: TK_INCLUDE TK_STRING { 
+        check_multiple_declaration($2.name);
         add('H');
 
         for (int i = 0; i < cur_class; i++){
@@ -186,7 +191,9 @@ include: TK_INCLUDE TK_STRING {
     }
     ;
 
-class_variable: TK_IDENTIFIER TK_DOT TK_IDENTIFIER { 
+class_variable: TK_IDENTIFIER TK_DOT TK_IDENTIFIER {
+    check_declaration($1.name);
+    check_declaration($3.name); 
     char* newstr =  (char*)malloc(strlen($1.name)+strlen($3.name)+1);
     strcpy(newstr, $1.name);
     strcat(newstr, ".");
@@ -206,12 +213,14 @@ class_function_call: TK_IDENTIFIER TK_DOT TK_IDENTIFIER '(' params_call ')' {
     }
     ;
 
-params: datatype TK_IDENTIFIER {add('V');} TK_COMMA params { 
+params: datatype TK_IDENTIFIER {check_multiple_declaration($2.name); add('V');} TK_COMMA params {
+        
         struct node* newnode = mknode(NULL, NULL, $2.name);
         $$.nd = mknode(newnode, $4.nd, "params");
     }
 
-    | datatype TK_IDENTIFIER {add('V');} { 
+    | datatype TK_IDENTIFIER {check_multiple_declaration($2.name); add('V');} { 
+        
         struct node* newnode = mknode(NULL, NULL, $2.name);
         $$.nd = mknode(newnode, NULL, "params");
     }
@@ -230,7 +239,7 @@ body: stmt body {
     }
     ;
 
-main: datatype TK_MAIN { add('F'); }
+main: datatype TK_MAIN {check_multiple_declaration($2.name); add('F'); }
     ;
 
 return: TK_RETURN { add('K'); } expr TK_SEMICOLON { 
@@ -242,7 +251,6 @@ stmt:  TK_PRINT { add('K'); } expr TK_SEMICOLON  {
     }
 
     | TK_IDENTIFIER TK_ASSIGN expr TK_SEMICOLON  { 
-        printf("tkid %s\n", $1.name);
         check_declaration($1.name);
         struct node* newnode = mknode(NULL, NULL, $1.name);
         $$.nd = mknode(newnode, $3.nd, "assign");
@@ -312,7 +320,8 @@ comparator_binary: TK_EQ
 comparator_unary: TK_NOT
     ;
 
-declaration: datatype array_sign TK_IDENTIFIER {add('V');} assignment {
+declaration: datatype array_sign TK_IDENTIFIER {check_multiple_declaration($3.name); add('V');} assignment {
+    
     struct node* newnode = mknode(NULL, NULL, $3.name);
     $$.nd = mknode(newnode, $5.nd, "declaration");
     }
@@ -548,11 +557,16 @@ void printPreorder(struct node *tree) {
     }
 }
 void check_declaration(char *c) {
-    //printf("Checking decl for %s\n", c);    
     q = search(c);    
-    //printf("return %d\n", q);
     if(!q) {        
         sprintf(errors[sem_errors], "Line %d: Variable \"%s\" not declared before usage in file %s!\n", countn+1, c, active_file_name);  
+        sem_errors++;    
+    }
+}
+void check_multiple_declaration(char *c) {
+    q = search(c);    
+    if(q) {        
+        sprintf(errors[sem_errors], "Line %d: Variable \"%s\" already declared in file %s!\n", countn+1, c, active_file_name);  
         sem_errors++;    
     }
 }
