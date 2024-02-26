@@ -2,7 +2,7 @@
     
     // TODO    
     // check function return types
-    
+
     
     
     
@@ -68,7 +68,6 @@
     int ic_idx=0;
     char icg[50][100];
 %}
-
 
 %union { 
     int intval; 
@@ -505,7 +504,7 @@ int main(int argc, char **argv)
 }
 
 void yyerror(const char* s) {
-    fprintf(stderr, "%s\n", s);
+    fprintf(stderr, "%s at line %d, in file %s\n", s, countn+1, active_file_name);
     exit(1);
 }
 
