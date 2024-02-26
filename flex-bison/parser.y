@@ -120,13 +120,15 @@ class_body: class_stmt class_body  {
     ;
 
 class_stmt: datatype TK_IDENTIFIER {check_multiple_declaration($2.name); add('V'); } assignment TK_SEMICOLON {
-        
+        printf("\natribuicao-class %s %s\n", $1.name, $4.name);
+        if ($4.nd != NULL){
+            check_types(find_type(mknode(NULL, NULL, $1.name)), find_type($4.nd));
+        }
         struct node* newnode = mknode(NULL, NULL, $2.name);
         $$.nd = mknode(newnode, $4.nd, "declaration");
     }
 
     | datatype TK_IDENTIFIER {check_multiple_declaration($2.name); add('F'); } '(' class_params ')' '{' body '}' { 
-        
         $$.nd = mknode($5.nd, $8.nd, $2.name);
     }
     ;
@@ -254,7 +256,6 @@ stmt:  TK_PRINT { add('K'); } expr TK_SEMICOLON  {
 
     | TK_IDENTIFIER TK_ASSIGN expr TK_SEMICOLON  { 
         check_declaration($1.name);
-        //printf("atribuicao %s %s %s\n", $1.name, $3.name, $3.nd->left->token);
         printf("\natribuicao %s %s\n", $1.name, $3.name);
         check_types(find_type(mknode(NULL, NULL, $1.name)), find_type($3.nd));
         struct node* newnode = mknode(NULL, NULL, $1.name);
@@ -440,7 +441,7 @@ int main(int argc, char **argv)
 
 
     int i = 0;
-    printf("\nSYMBOL   DATATYPE   TYPE   LINE NUMBER \n");
+    printf("\nSYMBOL   DATATYPE   TYPE   LINE NUMBER    FILE\n");
     for(i=0; i<count; i++) {
 		printf("%s\t%s\t%s\t%d\t%s\t\n", symbol_table[i].id_name, symbol_table[i].data_type, symbol_table[i].type, symbol_table[i].line_no, symbol_table[i].file);
 	}
@@ -612,6 +613,7 @@ int check_types(char* left, char* right) {
     else {
         sprintf(errors[sem_errors], "Line %d: Type mismatch in file %s\n", countn+1, active_file_name);
         sem_errors++;
+        return 0;
     }
 }
 
