@@ -1,4 +1,12 @@
 %{
+    
+    // TODO    
+    // check function return types
+    
+    
+    
+    
+    
     #include <stdio.h>
     #include <stdlib.h>
     #include <ctype.h>

@@ -75,7 +75,7 @@ digit [0-9]
 "]"                                 { strcpy(yylval.nd_obj.name, yytext); return yytext[0]; }
 [\n]                                { countn++; }
 [ \t]                               { ; }
-.                                   { printf("lexical error?\n"); lex_error(countn+1); }
+.                                   { lex_error(countn+1); }
 
 
 %%
