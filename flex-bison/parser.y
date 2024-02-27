@@ -1,13 +1,5 @@
 %{
-    
-    // TODO    
-    // check function return types
-    // if array, check for the size
-    // if try to access a array, check if it is an array or some random variable
-    
-    
-    
-    
+
     #include <stdio.h>
     #include <stdlib.h>
     #include <ctype.h>
@@ -55,7 +47,8 @@
 
     void check_declaration(char*);
     void check_multiple_declaration(char*);
-    void check_return_type(char*);
+    int check_return_type(char*);
+    int cur_return = 0;
     int check_types(char*, char*);
     char* find_type(struct node*);
     char* get_type(char*);
@@ -63,6 +56,7 @@
     char errors[10][150];
     char* temp_type;
 
+    struct node* active_returns[10];
     int temp_var=0; 
     int label=0; 
     int is_ifelse=0;
@@ -143,7 +137,6 @@ class_body: class_stmt class_body  {
     ;
 
 class_stmt: datatype TK_IDENTIFIER {check_multiple_declaration($2.name); add('V'); } assignment TK_SEMICOLON {
-        printf("\natribuicao-class %s %s\n", $1.name, $4.name);
         if ($4.nd != NULL){
             check_types(find_type(mknode(NULL, NULL, $1.name)), find_type($4.nd));
         }
@@ -152,7 +145,9 @@ class_stmt: datatype TK_IDENTIFIER {check_multiple_declaration($2.name); add('V'
     }
 
     | datatype TK_IDENTIFIER {check_multiple_declaration($2.name); add('F'); } '(' class_params ')' '{' body '}' { 
+        check_return_type($1.name);
         $$.nd = mknode($5.nd, $8.nd, $2.name);
+
     }
     ;
 
@@ -167,7 +162,10 @@ class_params: TK_SELF {
     }
     ;
 
-function: datatype TK_IDENTIFIER {check_multiple_declaration($2.name); add('F'); } '(' params ')' '{' body '}' {
+function: datatype TK_IDENTIFIER {check_multiple_declaration($2.name); 
+    check_return_type($1.name);
+    add('F'); 
+    } '(' params ')' '{' body '}' {
     
     $$.nd = mknode($5.nd, $8.nd, $2.name);}
     ;
@@ -269,7 +267,9 @@ body: stmt body {
 main: datatype TK_MAIN {check_multiple_declaration($2.name); add('F'); }
     ;
 
-return: TK_RETURN { add('K'); } expr TK_SEMICOLON { 
+return: TK_RETURN { add('K'); } expr TK_SEMICOLON {
+        active_returns[cur_return] = $3.nd;
+        cur_return++;
         $$.nd = mknode($3.nd, NULL, "return");}
     ;
 
@@ -279,7 +279,7 @@ stmt:  TK_PRINT { add('K'); } expr TK_SEMICOLON  {
 
     | TK_IDENTIFIER TK_ASSIGN expr TK_SEMICOLON  { 
         check_declaration($1.name);
-        printf("\natribuicao %s %s\n", $1.name, $3.name);
+        //printf("\natribuicao %s %s\n", $1.name, $3.name);
         check_types(find_type(mknode(NULL, NULL, $1.name)), find_type($3.nd));
         struct node* newnode = mknode(NULL, NULL, $1.name);
         $$.nd = mknode(newnode, $3.nd, "assign");
@@ -359,9 +359,9 @@ comparator_unary: TK_NOT
     ;
 
 declaration: datatype array_sign TK_IDENTIFIER {check_multiple_declaration($3.name); add('V');} assignment {
-    printf("\ndeclaracao %s %s %s\n", $1.name, $3.name, $5.name);
+    //printf("\ndeclaracao %s %s %s\n", $1.name, $3.name, $5.name);
     if ($5.nd != NULL){
-        printf("%s %s %s ... diff null\n", $1.name, $3.name, $5.name);
+        //printf("%s %s %s ... diff null\n", $1.name, $3.name, $5.name);
         check_types($1.name, find_type($5.nd));
     }
     struct node* newnode2 = mknode(NULL, NULL, $1.name);
@@ -378,7 +378,7 @@ datatype: TK_INT_TYPE { insert_type(); $$ = $1; }
     | TK_FLOAT_TYPE { insert_type(); $$ = $1; }
     | TK_STRING_TYPE { insert_type(); $$ = $1; }
     | TK_CHAR_TYPE { insert_type(); $$ = $1; }
-    | TK_CLASS_IDENTIFIER { printf("ASASSAAS %s\n", $1.name); check_declaration($1.name); insert_type(); $$ = $1; }
+    | TK_CLASS_IDENTIFIER { check_declaration($1.name); insert_type(); $$ = $1; }
     ;
 
 assignment: TK_ASSIGN expr {
@@ -484,9 +484,9 @@ int main(int argc, char **argv)
     //printInorder(head);
     //printf("\n");
 
-    //printf("Pre Order:\n");
-    //printPreorder(head);
-    //printf("\n");
+    printf("Pre Order:\n");
+    printPreorder(head);
+    printf("\n");
 
     if(sem_errors>0) {
 		printf("Semantic analysis completed with %d errors\n", sem_errors);
@@ -496,6 +496,7 @@ int main(int argc, char **argv)
 	} else {
 		printf("Semantic analysis completed with no errors");
 	}
+    printf("\n%s\n", errors[10]);
 	printf("\n\n");
 }
 
@@ -611,18 +612,6 @@ void check_multiple_declaration(char *c) {
         sem_errors++;    
     }
 }
-void check_return_type(char *value) {
-	char *main_datatype = get_type("main");
-	char *return_datatype = get_type(value);
-	if((!strcmp(main_datatype, "int") && !strcmp(return_datatype, "CONST")) || !strcmp(main_datatype, return_datatype)){
-		return ;
-	}
-	else {
-		sprintf(errors[sem_errors], "Line %d: Return type mismatch\n", countn+1);
-		sem_errors++;
-	}
-}
-
 char* find_type(struct node* node){
     if (node == NULL){
         return "N/A";
@@ -633,9 +622,7 @@ char* find_type(struct node* node){
     return get_type(node->token);
 }
 int check_types(char* left, char* right) {
-    printf("comparing %s and %s\n", left, right);
     if(!strcmp(left, right)){
-        printf("Type match\n");
         return 1;
     }
     else {
@@ -646,18 +633,29 @@ int check_types(char* left, char* right) {
 }
 
 char *get_type(char *var){
-    printf("searching for %s\n", var);
+    //printf("searching for %s\n", var);
 	for(int i=0; i<count; i++) {
 		// Handle case of use before declaration
 		if(!strcmp(symbol_table[i].id_name, var)) {
-            printf("found %s type %s\n", symbol_table[i].id_name, symbol_table[i].data_type);
+            //printf("found %s type %s\n", symbol_table[i].id_name, symbol_table[i].data_type);
 			return symbol_table[i].data_type;
 		}
 	}
-    printf("Not found %s\n", var);
+    //printf("Not found %s\n", var);
     return "N/A";
 }
 void lex_error(int line){
     printf("Lexical error at line %d in file %s\n", line, active_file_name);
     exit(1);
+}
+int check_return_type(char* type){
+    for (int i = 0; i < cur_return; i++){
+        if (strcmp(find_type(active_returns[i]), type) != 0){
+            sprintf(errors[sem_errors], "Line %d: Return type mismatch in file %s\n", countn+1, active_file_name);
+            sem_errors++;
+        }
+        active_returns[i] = NULL;
+    }
+    cur_return = 0;
+    return 0;
 }
