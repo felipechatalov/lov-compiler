@@ -2,7 +2,8 @@
     
     // TODO    
     // check function return types
-
+    // if array, check for the size
+    // if try to access a array, check if it is an array or some random variable
     
     
     
@@ -420,7 +421,7 @@ term : value {
         $$.nd = mknode(NULL, NULL, $1.name);    
     }
 
-    | TK_IDENTIFIER { 
+    | TK_IDENTIFIER array_sign { 
         check_declaration($1.name);
         $$.nd = mknode(NULL, NULL, $1.name);        
     }
@@ -441,8 +442,6 @@ term : value {
         $$.nd = mknode(NULL, NULL, "read");
     }
     ;
-
-
 %%
 
 int main(int argc, char **argv)
@@ -481,15 +480,13 @@ int main(int argc, char **argv)
 		free(symbol_table[i].type);
 	}
 
-    if (head != NULL){
-        printf("In Order:\n");
-        printInorder(head);
-        printf("\n");
+    //printf("In Order:\n");
+    //printInorder(head);
+    //printf("\n");
 
-        printf("Pre Order:\n");
-        printPreorder(head);
-        printf("\n");
-    }
+    //printf("Pre Order:\n");
+    //printPreorder(head);
+    //printf("\n");
 
     if(sem_errors>0) {
 		printf("Semantic analysis completed with %d errors\n", sem_errors);
@@ -499,7 +496,6 @@ int main(int argc, char **argv)
 	} else {
 		printf("Semantic analysis completed with no errors");
 	}
-    printf("\n\t - %s", errors[10]);
 	printf("\n\n");
 }
 
