@@ -1,5 +1,5 @@
+include "Banco.lov";
 include "Cliente.lov";
-include "Banco.lov"; 
 
 char printaalgo(){
     print "algo";
@@ -7,30 +7,38 @@ char printaalgo(){
 }
 
 int main(){
-    Banco b = Banco(1, 1000, "Banco1");
-    Cliente c = Cliente("Cliente1", '1');
+    Banco b = Banco();
+    Cliente c = Cliente();
     int variavel;
     int[10] array;
+    float number = 10;
 
-
+    int naodclr = 10;
+    int a = 9;
     int total = read();
+
+    int total;
+
+    number = 5;
+
     while (total > 0){
-        int valor = read();
-        if (c.sacar(valor) == 0){
+        int valorMain = read();
+        if (c.sacar(valorMain) == 0){
             print "Saldo insuficiente";
         }
         else{
-            b.transferir(valor, c);
+            b.transferir(valorMain, c);
         }
-        total = total - 1;
+        total = total - 1 - 2;
     }
     while (false){
+        a = a + 1;
         print a;
     }
     print b.dinheiro;
     c.sacar(100);
-    print c.dinheiro;
-    c.depositar(100);
+
+    c.dinheiro = 20;
     print c.dinheiro;
     return 0;
 }

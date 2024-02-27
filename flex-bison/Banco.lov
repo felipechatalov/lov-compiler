@@ -2,13 +2,14 @@ class Banco(){
     int id;
     int dinheiro;
     string nome;
+    float bancovariavel = 1;
 
-    int transferir(self, int valor, Banco destino){
-        dinheiro = dinheiro - valor;
+    int transferirBanco(self, int valorBanco, Banco destinoBanco){
+        dinheiro = dinheiro - valorBanco;
         if (dinheiro < 0){
             return 0;
         }
-        destino.dinheiro = destinodinheiro + valor;
+        dinheiro = dinheiro + valorBanco[0];
         return 1;
     }
 }
